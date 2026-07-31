@@ -44,6 +44,19 @@ os.environ['LANG'] = 'en_US.UTF-8'
 time.tzset()
 
 
+PREPARATION_PATH = '/usr/libexec/helper-scripts/onion-time-pre-script'
+
+# Lower bound on the preparation retry interval. The interval is reset whenever
+# onion-time-pre-script's output differs from the previous run, so any status
+# line that changes on every run holds the loop at this value. Each run spawns
+# six Tor control port helpers, so the floor is what bounds the cost when that
+# happens.
+PREPARATION_SLEEP_MIN_SECONDS = 3
+
+# Upper bound, reached while the output stays unchanged.
+PREPARATION_SLEEP_MAX_SECONDS = 10
+
+
 def write_status(icon, msg):
     status = {'icon': '', 'message': ''}
     status['icon'] = icon
@@ -187,7 +200,7 @@ class SdwdateClass(object):
         previous_messsage = ''
         loop_counter = 0
         loop_max = 10000
-        preparation_sleep_seconds = 0
+        preparation_sleep_seconds = PREPARATION_SLEEP_MIN_SECONDS
         while True:
             SDNOTIFY_OBJECT.notify('WATCHDOG=1')
             if loop_counter >= loop_max:
@@ -204,17 +217,14 @@ class SdwdateClass(object):
                   )
             SDNOTIFY_OBJECT.notify(msg)
 
-            # Wait one second after first failure. Two at second failure etc.
-            # Up to a maximum of ten seconds wait between attempts.
-            # The rationale behind this is to be quick at boot time while not
-            # stressing the system.
-            preparation_sleep_seconds += 1
-            if preparation_sleep_seconds >= 10:
-                preparation_sleep_seconds = 10
+            # Wait a second longer after each failure, between the floor and
+            # the ceiling. The rationale behind this is to be quick at boot
+            # time while not stressing the system.
+            preparation_sleep_seconds = min(
+                preparation_sleep_seconds + 1, PREPARATION_SLEEP_MAX_SECONDS)
 
-            preparation_path = '/usr/libexec/helper-scripts/onion-time-pre-script'
             preparation_status = subprocess.Popen(
-                preparation_path, stdout=subprocess.PIPE,
+                PREPARATION_PATH, stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
 
             stdout, stderr = preparation_status.communicate()
@@ -263,8 +273,10 @@ class SdwdateClass(object):
 
             # Different message. Probably progress was made.
             # More progress to be expected.
-            # Therefore reset wait counter to just wait a short time.
-            preparation_sleep_seconds = 1
+            # Therefore drop the wait back to the floor to stay responsive,
+            # but never below it: onion-time-pre-script is too expensive to run
+            # at the rate a status line that changes every run would ask for.
+            preparation_sleep_seconds = PREPARATION_SLEEP_MIN_SECONDS
             time.sleep(preparation_sleep_seconds)
 
 
