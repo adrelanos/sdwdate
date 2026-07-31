@@ -95,13 +95,13 @@ jobs:
           GITHUB_BASE_REF: ${{ github.base_ref }}
         run: ./ci/onion-tester-verify-evidence.sh
 
-      - name: Checkout developer-meta-files (for step-summary-emit.sh)
+      - name: Checkout dist-ai (for usr/bin/step-summary-emit)
         if: always()
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
-          repository: org-ai-assisted/developer-meta-files
+          repository: org-ai-assisted/dist-ai
           ref: master
-          path: .dmf
+          path: .github/dist-ai
           persist-credentials: false
 
       - name: Summary - onion-tester
@@ -110,7 +110,7 @@ jobs:
           JOB_STATUS: ${{ steps.onion-tester.outcome }}
           ATTEMPTS: ${{ steps.onion-tester.outputs.attempts }}
         run: |
-          ./.dmf/ci/step-summary-emit.sh \
+          ./.github/dist-ai/usr/bin/step-summary-emit \
             --tool 'onion-tester (Tor SOCKS5 probe of every URL in the conf)' \
             --column-header field \
             --row "outcome=${JOB_STATUS}" \
@@ -123,7 +123,7 @@ jobs:
           REMOVED: ${{ steps.probe-removed.outputs.removed_count }}
           ALIVE: ${{ steps.probe-removed.outputs.still_alive }}
         run: |
-          ./.dmf/ci/step-summary-emit.sh \
+          ./.github/dist-ai/usr/bin/step-summary-emit \
             --tool 'probe-removed (truly-dropped onions must be unreachable)' \
             --column-header field \
             --row "outcome=${JOB_STATUS}" \
@@ -138,7 +138,7 @@ jobs:
           VERIFIED: ${{ steps.verify-evidence.outputs.verified }}
           MISSING: ${{ steps.verify-evidence.outputs.missing }}
         run: |
-          ./.dmf/ci/step-summary-emit.sh \
+          ./.github/dist-ai/usr/bin/step-summary-emit \
             --tool 'verify-evidence (wayback URL must mention the .onion hash)' \
             --column-header field \
             --row "outcome=${JOB_STATUS}" \
