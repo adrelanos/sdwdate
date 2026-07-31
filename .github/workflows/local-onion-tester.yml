@@ -19,7 +19,7 @@ on:
       - 'usr/share/sdwdate/onion-tester'
       - 'usr/lib/python3/dist-packages/sdwdate/**'
       - 'usr/bin/url_to_unixtime'
-      - 'ci/onion-tester-*.sh'
+      - 'ci/onion-tester-*'
       - '.github/workflows/local-onion-tester.yml'
   pull_request:
     paths:
@@ -27,7 +27,7 @@ on:
       - 'usr/share/sdwdate/onion-tester'
       - 'usr/lib/python3/dist-packages/sdwdate/**'
       - 'usr/bin/url_to_unixtime'
-      - 'ci/onion-tester-*.sh'
+      - 'ci/onion-tester-*'
       - '.github/workflows/local-onion-tester.yml'
   workflow_dispatch:
 
@@ -41,7 +41,10 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    ## Backstop only. The per-step caps below are the real budgets; this has
+    ## to exceed their sum or a slow-but-healthy Tor run gets cut off with no
+    ## verdict and no summary.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
@@ -58,6 +61,10 @@ jobs:
           apt-packages: 'tor python3-dateutil python3-stem python3-requests python3-socks python3-sdnotify curl ca-certificates safe-rm'
           install-self: 'true'
 
+      - name: Test the onion-tester retry policy (offline, mocked probe)
+        timeout-minutes: 5
+        run: ./ci/onion-tester-run-test.sh
+
       - name: Configure and start Tor
         run: ./ci/onion-tester-configure-tor.sh
 
@@ -66,12 +73,14 @@ jobs:
 
       - name: Run onion-tester (Tor SOCKS5 probe, retry on transient flake)
         id: onion-tester
-        ## Attempt 1 probes the full conf (~5 min); later attempts re-probe ONLY the
-        ## URLs that failed, so a transient per-onion flake is cheap. The wrapper
-        ## self-bounds to a 14-min wall-clock deadline (ONION_TESTER_DEADLINE) and
+        ## Attempt 1 probes the full conf (measured 5-13 min); later attempts
+        ## re-probe ONLY the URLs that failed, so a transient per-onion flake is
+        ## cheap. Each retry is preceded by NEWNYM plus a 60s settle, so a full
+        ## 3-attempt run is a full sweep + 2 short retries + 2 sleeps. The wrapper
+        ## self-bounds to a 20-min wall-clock deadline (ONION_TESTER_DEADLINE) and
         ## runs each attempt under `timeout`, so it exits cleanly + records outputs;
-        ## this step cap is the backstop above that (18 > 14).
-        timeout-minutes: 18
+        ## this step cap is the backstop above that (24 > 20).
+        timeout-minutes: 24
         run: ./ci/onion-tester-run.sh
 
       - name: Probe REMOVED onion entries (must be OFFLINE)
@@ -109,12 +118,14 @@ jobs:
         env:
           JOB_STATUS: ${{ steps.onion-tester.outcome }}
           ATTEMPTS: ${{ steps.onion-tester.outputs.attempts }}
+          FINAL_RC: ${{ steps.onion-tester.outputs.final_rc }}
         run: |
           ./.github/dist-ai/usr/bin/step-summary-emit \
             --tool 'onion-tester (Tor SOCKS5 probe of every URL in the conf)' \
             --column-header field \
             --row "outcome=${JOB_STATUS}" \
-            --row "attempts=${ATTEMPTS:-?}"
+            --row "attempts=${ATTEMPTS:-?}" \
+            --row "final-rc=${FINAL_RC:-?} (0 all up, 1 URL offline, 3 NEWNYM failed, 124 out of budget)"
 
       - name: Summary - probe-removed
         if: always()
