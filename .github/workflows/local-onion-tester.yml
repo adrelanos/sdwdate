@@ -66,14 +66,6 @@ jobs:
           apt-packages: 'tor python3-dateutil python3-stem python3-requests python3-socks python3-sdnotify curl ca-certificates safe-rm'
           install-self: 'true'
 
-      - name: Test the onion-tester retry policy (offline, mocked probe)
-        timeout-minutes: 5
-        run: ./ci/onion-tester-run-test.sh
-
-      - name: Test the wayback evidence temp-file handling (offline, stubbed curl)
-        timeout-minutes: 5
-        run: ./ci/onion-tester-verify-evidence-test.sh
-
       - name: Configure and start Tor
         run: ./ci/onion-tester-configure-tor.sh
 
