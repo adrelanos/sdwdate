@@ -73,10 +73,10 @@ jobs:
           persist-credentials: false
 
       - name: Configure and start Tor
-        run: ./.github/dist-ai/ci/onion-tester-configure-tor.sh
+        run: ./.github/dist-ai/usr/bin/onion-tester-configure-tor
 
       - name: Wait for Tor bootstrap
-        run: ./.github/dist-ai/ci/onion-tester-wait-bootstrap.sh
+        run: ./.github/dist-ai/usr/bin/onion-tester-wait-bootstrap
 
       - name: Run onion-tester (Tor SOCKS5 probe, retry on transient flake)
         id: onion-tester
@@ -88,7 +88,7 @@ jobs:
         ## runs each attempt under `timeout`, so it exits cleanly + records outputs;
         ## this step cap is the backstop above that (24 > 20).
         timeout-minutes: 24
-        run: ./.github/dist-ai/ci/onion-tester-run.sh
+        run: ./.github/dist-ai/usr/bin/onion-tester-run
 
       - name: Probe REMOVED onion entries (must be OFFLINE)
         id: probe-removed
@@ -98,7 +98,7 @@ jobs:
         timeout-minutes: 5
         env:
           GITHUB_BASE_REF: ${{ github.base_ref }}
-        run: ./.github/dist-ai/ci/onion-tester-probe-removed.sh
+        run: ./.github/dist-ai/usr/bin/onion-tester-probe-removed
 
       - name: Verify wayback evidence for ADDED entries (proof onion <-> clearnet)
         id: verify-evidence
@@ -109,7 +109,7 @@ jobs:
         timeout-minutes: 20
         env:
           GITHUB_BASE_REF: ${{ github.base_ref }}
-        run: ./.github/dist-ai/ci/onion-tester-verify-evidence.sh
+        run: ./.github/dist-ai/usr/bin/onion-tester-verify-evidence
 
       - name: Summary - onion-tester
         if: always()
