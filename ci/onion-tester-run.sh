@@ -46,11 +46,17 @@ if [ "${CI:-}" != "true" ] && [ "${ALLOW_LOCAL:-}" != "true" ]; then
 fi
 
 ## CI-tuned probe knobs (the probe keeps its production defaults 3 / 60 for direct
-## end-user runs; here we parallelize harder and shorten the diagnostic HEAD so a
-## FULL sweep is ~5 min instead of ~13 -- which is what leaves budget for the
-## targeted retries below). '[ -v ] ||' respects an explicit override, incl. empty.
+## end-user runs; here we parallelize harder so a FULL sweep is ~5 min instead of
+## ~13 -- which is what leaves budget for the targeted retries below).
+## '[ -v ] ||' respects an explicit override, incl. empty.
+##
+## The diagnostic HEAD is the ONLY second opinion in the log on a URL the probe
+## called OFFLINE. At 15s a cold Tor client rarely finishes a descriptor fetch
+## plus rendezvous, so it printed "Curl --head also Not OK" almost regardless of
+## the service -- corroboration that corroborates nothing. 45s makes the two
+## signals independent enough to tell apart in a post-mortem.
 [ -v ONION_TESTER_CHUNK ] || ONION_TESTER_CHUNK=20
-[ -v ONION_TESTER_HEAD_MAXTIME ] || ONION_TESTER_HEAD_MAXTIME=15
+[ -v ONION_TESTER_HEAD_MAXTIME ] || ONION_TESTER_HEAD_MAXTIME=45
 export ONION_TESTER_CHUNK ONION_TESTER_HEAD_MAXTIME
 
 script_dir="$(dirname -- "${BASH_SOURCE[0]}")"

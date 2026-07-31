@@ -34,6 +34,13 @@ ControlPort 9051
 CookieAuthentication 1
 CookieAuthFileGroupReadable 1
 Log notice file /var/log/tor/notice.log
+## Entry guards are a per-run single point of failure here: a cold CI client
+## picks its guards once, and NEWNYM gives new circuits but keeps the SAME
+## guard, so one slow guard degrades every attempt in the run alike. This is a
+## reachability probe of public services from a throwaway runner, with no
+## anonymity property to protect, so pin nothing and let each circuit pick a
+## fresh entry.
+UseEntryGuards 0
 TORRC_EOF
    sudo systemctl restart tor@default
    printf '%s\n' "torrc appended; tor@default restarted"
