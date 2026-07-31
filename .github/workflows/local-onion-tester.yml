@@ -19,7 +19,6 @@ on:
       - 'usr/share/sdwdate/onion-tester'
       - 'usr/lib/python3/dist-packages/sdwdate/**'
       - 'usr/bin/url_to_unixtime'
-      - 'ci/onion-tester-*'
       - '.github/workflows/local-onion-tester.yml'
   pull_request:
     paths:
@@ -27,7 +26,6 @@ on:
       - 'usr/share/sdwdate/onion-tester'
       - 'usr/lib/python3/dist-packages/sdwdate/**'
       - 'usr/bin/url_to_unixtime'
-      - 'ci/onion-tester-*'
       - '.github/workflows/local-onion-tester.yml'
   workflow_dispatch:
 
@@ -66,11 +64,19 @@ jobs:
           apt-packages: 'tor python3-dateutil python3-stem python3-requests python3-socks python3-sdnotify curl ca-certificates safe-rm'
           install-self: 'true'
 
+      - name: Checkout dist-ai (onion-tester ci scripts + step-summary-emit)
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          repository: org-ai-assisted/dist-ai
+          ref: master
+          path: .github/dist-ai
+          persist-credentials: false
+
       - name: Configure and start Tor
-        run: ./ci/onion-tester-configure-tor.sh
+        run: ./.github/dist-ai/ci/onion-tester-configure-tor.sh
 
       - name: Wait for Tor bootstrap
-        run: ./ci/onion-tester-wait-bootstrap.sh
+        run: ./.github/dist-ai/ci/onion-tester-wait-bootstrap.sh
 
       - name: Run onion-tester (Tor SOCKS5 probe, retry on transient flake)
         id: onion-tester
@@ -82,7 +88,7 @@ jobs:
         ## runs each attempt under `timeout`, so it exits cleanly + records outputs;
         ## this step cap is the backstop above that (24 > 20).
         timeout-minutes: 24
-        run: ./ci/onion-tester-run.sh
+        run: ./.github/dist-ai/ci/onion-tester-run.sh
 
       - name: Probe REMOVED onion entries (must be OFFLINE)
         id: probe-removed
@@ -92,7 +98,7 @@ jobs:
         timeout-minutes: 5
         env:
           GITHUB_BASE_REF: ${{ github.base_ref }}
-        run: ./ci/onion-tester-probe-removed.sh
+        run: ./.github/dist-ai/ci/onion-tester-probe-removed.sh
 
       - name: Verify wayback evidence for ADDED entries (proof onion <-> clearnet)
         id: verify-evidence
@@ -103,16 +109,7 @@ jobs:
         timeout-minutes: 20
         env:
           GITHUB_BASE_REF: ${{ github.base_ref }}
-        run: ./ci/onion-tester-verify-evidence.sh
-
-      - name: Checkout dist-ai (for usr/bin/step-summary-emit)
-        if: always()
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
-        with:
-          repository: org-ai-assisted/dist-ai
-          ref: master
-          path: .github/dist-ai
-          persist-credentials: false
+        run: ./.github/dist-ai/ci/onion-tester-verify-evidence.sh
 
       - name: Summary - onion-tester
         if: always()
