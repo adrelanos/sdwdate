@@ -89,11 +89,15 @@ archive_urls_for_host() {
 ## the body lacks the hash, with enough sleep to outlast wayback's
 ## ~5-10s negative cache.
 fetch_and_grep_hash() {
-   local hash archive_urls tmp_file attempt archive_url
+   local hash archive_urls tmp_file attempt archive_url rc=1
 
    hash="${1}"
    archive_urls="${2}"
-   tmp_file="/tmp/wb-${hash}.html"
+   ## mktemp, not "/tmp/wb-${hash}.html": that path is derived entirely from
+   ## attacker-influenceable conf content, so it is predictable and pre-creatable
+   ## by any other user on the host, and it was never cleaned up. Every sibling
+   ## script here uses mktemp + safe-rm; match them.
+   tmp_file="$(mktemp)"
    while IFS= read -r archive_url; do
       if [ -z "${archive_url}" ]; then
          continue
@@ -104,12 +108,16 @@ fetch_and_grep_hash() {
             --output "${tmp_file}" -- "${archive_url}" 2>/dev/null || true
          if [ -s "${tmp_file}" ] \
             && grep --ignore-case -- "${hash}" "${tmp_file}" >/dev/null; then
-            return 0
+            rc=0
+            break 2
          fi
          sleep "${inter_attempt_sleep}"
       done
    done <<< "${archive_urls}"
-   return 1
+   ## Single cleanup point, reached by both outcomes: returning from inside the
+   ## loops would leak one scratch file per verified hash.
+   safe-rm --force -- "${tmp_file}"
+   return "${rc}"
 }
 
 main() {
