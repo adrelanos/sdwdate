@@ -79,14 +79,48 @@ deadline_seconds="${ONION_TESTER_DEADLINE:-1200}"
 ## interpreter startup. Below this, `timeout` would reap the probe before it could
 ## answer, so starting the attempt only manufactures an rc=124.
 min_attempt_seconds="${ONION_TESTER_MIN_ATTEMPT:-180}"
+## Cap on the warm-up sweep (0 disables it). Sized to a cold full sweep; it is
+## clamped below so it can never eat the budget a measured attempt needs.
+warmup_max_seconds="${ONION_TESTER_WARMUP_MAX:-600}"
 
 main() {
-   local start now elapsed remaining attempt rc final_attempt=0 tmp
+   local start now elapsed remaining attempt rc final_attempt=0 tmp warmup_budget
    local -a probe_args=()
 
    start="$(date +%s)"
    tmp="$(mktemp)"
    rc=0
+
+   ## Tor is restarted immediately before this script runs, and "Bootstrapped
+   ## 100%" only means a circuit exists -- it does NOT mean the client holds
+   ## hidden-service descriptors for the services in the conf. The first sweep of
+   ## a cold client therefore measures descriptor fetching, not the conf: with the
+   ## chunk size held constant, the same 9 URLs took 178s with 1 OFFLINE on a
+   ## just-bootstrapped client and 14s with 0 OFFLINE four minutes later.
+   ##
+   ## Do that sweep deliberately and DISCARD its verdict, so attempt 1 measures a
+   ## warm client. This does not loosen the gate: every URL must still respond on
+   ## some measured attempt, and a genuinely dead onion still fails them all. It
+   ## removes a known-invalid measurement rather than adding re-rolls.
+   if [ "${warmup_max_seconds}" -gt 0 ]; then
+      now="$(date +%s)"
+      remaining=$((deadline_seconds - (now - start)))
+      warmup_budget="${warmup_max_seconds}"
+      ## A warm-up is not a measurement, so it must never leave the measured
+      ## attempts unable to start.
+      if [ "$((remaining - warmup_budget))" -lt "${min_attempt_seconds}" ]; then
+         warmup_budget=$((remaining - min_attempt_seconds))
+      fi
+      if [ "${warmup_budget}" -gt 0 ]; then
+         printf '%s\n' "=== onion-tester warm-up sweep (${warmup_budget}s cap; verdict DISCARDED, populates Tor's descriptor cache) ==="
+         timeout --kill-after=10s "${warmup_budget}s" "${onion_tester}" > "${tmp}" 2>&1 || true
+         ## Only the totals: the warm-up is not evidence, and echoing a full sweep
+         ## would bury the measured attempts in the CI log.
+         sed -n 's/^TOTAL/warm-up (NOT a verdict) TOTAL/p' -- "${tmp}" || true
+      else
+         printf '%s\n' "onion-tester: no budget for a warm-up sweep; attempt 1 measures a cold client" >&2
+      fi
+   fi
 
    for ((attempt = 1; attempt <= attempts; attempt++)); do
       now="$(date +%s)"
@@ -103,9 +137,9 @@ main() {
       fi
 
       if [ "${#probe_args[@]}" -eq 0 ]; then
-         printf '%s\n' "=== onion-tester attempt ${attempt}/${attempts} (full conf; ${remaining}s of budget left) ==="
+         printf '%s\n' "=== onion-tester attempt ${attempt} of up to ${attempts} (full conf; ${remaining}s of budget left) ==="
       else
-         printf '%s\n' "=== onion-tester attempt ${attempt}/${attempts} (retry ${#probe_args[@]} failed URL(s); ${remaining}s left) ==="
+         printf '%s\n' "=== onion-tester attempt ${attempt} of up to ${attempts} (retry ${#probe_args[@]} failed URL(s); ${remaining}s left) ==="
       fi
 
       ## Bound the single attempt by the remaining budget; --kill-after reaps curl
