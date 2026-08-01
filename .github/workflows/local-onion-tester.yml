@@ -117,13 +117,14 @@ jobs:
           JOB_STATUS: ${{ steps.onion-tester.outcome }}
           ATTEMPTS: ${{ steps.onion-tester.outputs.attempts }}
           FINAL_RC: ${{ steps.onion-tester.outputs.final_rc }}
+          FINAL_RC_LEGEND: ${{ steps.onion-tester.outputs.final_rc_legend }}
         run: |
           ./.github/dist-ai/usr/bin/step-summary-emit \
             --tool 'onion-tester (Tor SOCKS5 probe of every URL in the conf)' \
             --column-header field \
             --row "outcome=${JOB_STATUS}" \
             --row "attempts=${ATTEMPTS:-?}" \
-            --row "final-rc=${FINAL_RC:-?} (0 all up, 1 URL offline, 3 NEWNYM failed, 124 out of budget)"
+            --row "final-rc=${FINAL_RC:-?} ${FINAL_RC_LEGEND:-(legend unavailable)}"
 
       - name: Summary - probe-removed
         if: always()
