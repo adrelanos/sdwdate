@@ -1,9 +1,118 @@
+commit aeec06debd7f0c230d7635d1fb4e05cf7e69162d
+Merge: 945afee eb83a6a
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Sat Aug 1 04:09:54 2026 -0400
+
+    Merge remote-tracking branch 'org-ai-assisted/ai'
+
+commit eb83a6ac3823eb3be71e0d68e46c7a5351889de5
+Author: claude (dev142 b93fb2c6-e15f-4d45-8566-f3ded893b70e) <noreply@anthropic.com>
+Date:   Fri Jul 31 16:23:30 2026 -0400
+
+    CI: propagate bandit + secrets-audit consumer workflows
+
+    Byte-identical propagation from developer-meta-files
+    consumer-templates. Closes scanner-coverage gaps
+    (codeql-actions already present):
+
+    - consumer-bandit.yml: Python security lint, universal
+      self-discovery (extension + shebang scan), no per-repo config.
+    - consumer-secrets-audit.yml: manual-dispatch secrets surface
+      audit (presence flags only, values never emitted).
+
+    Managed files -- do not hand-edit; regenerated on the next
+    propagation pass.
+
+    ## AI-Assisted
+
+    Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+
+commit c1bb269fc4e4ea7a29dea62c4add5b10efabb28f
+Merge: 2eeb4d3 f6f78a5
+Author: assisted-by-ai (Bot Account) (Machine Account) <228987186+assisted-by-ai@users.noreply.github.com>
+Date:   Fri Jul 31 15:52:34 2026 -0400
+
+    Merge pull request #7 from org-ai-assisted/ai
+
+    CI: add CodeQL c-cpp lane for sclockadj
+
+commit 945afeec8893591d33e66b2ceea63be70d205d3c
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Fri Jul 31 18:05:51 2026 +0000
+
+    bumped changelog version
+
+commit f6f78a527d92f3cf71adc8c8776dee93fb72c9db
+Author: claude (dev142 b93fb2c6-e15f-4d45-8566-f3ded893b70e) <noreply@anthropic.com>
+Date:   Fri Jul 31 13:58:22 2026 -0400
+
+    add CodeQL c-cpp consumer workflow for sclockadj
+
+    - usr/src/sdwdate/sclockadj.c is a standalone privileged binary that
+      parses argv and feeds the result to clock_settime(CLOCK_REALTIME).
+      Clock skew is a deanonymisation vector here, so argv reaching that
+      syscall is worth static analysis. Nothing scanned this C before: the
+      existing consumer lanes cover actions and python only, and the org no
+      longer uses GitHub default setup.
+    - .github/workflows/consumer-codeql-cpp.yml is a byte-identical copy of
+      developer-meta-files/consumer-templates/.github/workflows/, verified
+      with cmp against that repo's master. Managed file, do not hand-edit.
+    - consumer-codeql-cpp.yml passes build-mode manual, so the reusable
+      hard-fails without codeql-cpp.build-command. Added that section to the
+      existing .github/dm-consumer.yml.
+    - build-command delegates to the sibling usr/src/sdwdate/Makefile
+      (`make -C usr/src/sdwdate`) instead of restating its hardening flag
+      set, so CodeQL traces the compiler invocation that actually ships.
+
+    Generated with assistance from Claude Code.
+
+commit 2eeb4d31466a71f1161ed5191f5f68f7eabf1c2f
+Merge: 63911c3 5e00f42
+Author: assisted-by-ai (Bot Account) (Machine Account) <228987186+assisted-by-ai@users.noreply.github.com>
+Date:   Fri Jul 31 13:51:19 2026 -0400
+
+    Merge pull request #6 from org-ai-assisted/ai
+
+    CI: CodeQL consumer workflows + onion-tester rc legend from source of truth
+
+commit 5e00f424faa825359fa61db59c6d15df89250948
+Author: claude (dev148 a66a5883-a521-4a0d-a941-21b7c22dba73) <noreply@anthropic.com>
+Date:   Fri Jul 31 13:31:42 2026 -0400
+
+    local-onion-tester: consume final_rc_legend instead of a hardcoded key
+
+    - The rc-to-meaning legend now comes from onion-tester-run's
+      final_rc_legend output (its rc_meaning map is the source of truth),
+      so the summary can't drift from the wrapper's exit codes.
+    - :-(legend unavailable) fallback keeps the row honest against an old
+      wrapper that predates the output.
+
+    Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+
 commit 02fa5fcd1e4c79ec1967fb2403de32ee6cc630ae
 Merge: d452b4c 63911c3
 Author: Patrick Schleizer <adrelanos@whonix.org>
 Date:   Fri Jul 31 13:15:49 2026 -0400
 
     Merge remote-tracking branch 'refs/remotes/org-ai-assisted/master'
+
+commit c1a5f9a6cbe1669e45bbab327c9319b9aea9c2d2
+Author: claude (dev142 b93fb2c6-e15f-4d45-8566-f3ded893b70e) <noreply@anthropic.com>
+Date:   Fri Jul 31 12:58:19 2026 -0400
+
+    add CodeQL consumer workflows (actions, python)
+
+    - Replaces GitHub default-setup CodeQL (web-UI state, no file
+      representation) with the org's file-based consumer wrappers.
+    - Byte-identical copies of
+      developer-meta-files/consumer-templates/.github/workflows/.
+    - No .github/dm-consumer.yml needed: consumer-codeql-actions.yml
+      passes no dm-consumer-section, and codeql-python's section is
+      optional (ci/dm-consumer-load.sh soft-skips when absent).
+    - queries stays the reusable's default security-and-quality,
+      a superset of the security-extended suite default setup used.
+
+    Generated with assistance from Claude Code.
 
 commit 63911c3dcd0857ef99296585194f5a9b3adcceff
 Merge: c869d2c ec43968
