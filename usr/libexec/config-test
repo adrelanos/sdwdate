@@ -6,16 +6,28 @@
 ## usage:
 ## usr/libexec/config-test > ./config-test.txt
 
+set -o errexit
+set -o nounset
+set -o pipefail
+set -o errtrace
+shopt -s inherit_errexit
+shopt -s shift_verbose
+
 MYDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd "$MYDIR"
+cd "${MYDIR}"
 
 cmd="python3 ../../usr/lib/python3/dist-packages/sdwdate/config.py"
 
-echo ""
+printf '%s\n' ""
 
-$cmd "0" "test"
-$cmd "1" "test"
-$cmd "2" "test"
+## This is a report -- its documented usage redirects stdout to a file -- so
+## every check must run. Under errexit the first failure would abort and the
+## remaining two would silently never be reported.
+${cmd} "0" "test" || true
+${cmd} "1" "test" || true
+## Left fatal so the script still exits with the last check's status, exactly as
+## it did before strict mode.
+${cmd} "2" "test"
 
 # $cmd "0" "production"
 # $cmd "1" "production"

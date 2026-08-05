@@ -5,8 +5,15 @@
 
 ## Find out which onions are available over TLS.
 
+set -o errexit
+set -o nounset
+set -o pipefail
+set -o errtrace
+shopt -s inherit_errexit
+shopt -s shift_verbose
+
 while read -r -d $'\n' line ; do
-   read -r first_word _ <<< "$line"
-   url_https="$(echo "$first_word" | str_replace "http://" "https://")"
-   curl --head "$url_https"
+   read -r first_word _ <<< "${line}"
+   url_https="$(printf '%s\n' "${first_word}" | str_replace "http://" "https://")"
+   curl --head "${url_https}"
 done < <( /usr/share/sdwdate/onion-list-all )
