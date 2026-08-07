@@ -12,12 +12,20 @@ shopt -s inherit_errexit
 shopt -s shift_verbose
 
 # shellcheck source=../../../../helper-scripts/usr/libexec/helper-scripts/has.sh
+## Sibling repo: absent in an isolated CI checkout, so shellcheck cannot
+## follow it there. The source= path above still documents where it lives.
+# shellcheck disable=SC1091
 source /usr/libexec/helper-scripts/has.sh
 
 date_cmd(){
    date --utc +"%Y-%m-%d %T"
 }
 
+## Vestigial: this sets output_cmd, but unlike suspend-post the script
+## prints directly, so the verbose toggle has no effect here. Flagged
+## rather than removed -- deciding whether to wire it up or drop it is a
+## maintainer call, not part of a strict-mode pass.
+# shellcheck disable=SC2034
 output_cmd_set() {
    if [ -o xtrace ]; then
       output_cmd="true"
