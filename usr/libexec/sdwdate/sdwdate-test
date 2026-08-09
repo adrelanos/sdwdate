@@ -4,7 +4,12 @@
 ## See the file COPYING for copying conditions.
 
 set -x
-set -e
+set -o errexit
+set -o nounset
+set -o pipefail
+set -o errtrace
+shopt -s inherit_errexit
+shopt -s shift_verbose
 
 date --set "Fri 24 Sep 2011 06:51:24 PM UTC"
 systemctl stop tor
@@ -13,4 +18,3 @@ systemctl restart tor
 sdwdate-clock-jump
 
 true "OK"
-

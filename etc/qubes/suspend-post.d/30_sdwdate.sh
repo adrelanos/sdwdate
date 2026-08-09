@@ -11,6 +11,11 @@
 ## in Qubes-Whonix.
 #### meta end
 
-set -e
+set -o errexit
+set -o nounset
+set -o pipefail
+set -o errtrace
+shopt -s inherit_errexit
+shopt -s shift_verbose
 
 /usr/libexec/sdwdate/suspend-post

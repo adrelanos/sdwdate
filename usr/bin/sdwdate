@@ -8,12 +8,17 @@
 
 set -x
 
-set -e
+set -o errexit
+set -o nounset
+set -o pipefail
+set -o errtrace
+shopt -s inherit_errexit
+shopt -s shift_verbose
 
 true "INFO $0: START"
 
-echo "WARNING: Starting sdwdate from command line by the user is unsupported, for more information, see:"
-echo "https://www.kicksecure.com/wiki/Dev/sdwdate#sdwdate_linux_user_account"
+printf '%s\n' "WARNING: Starting sdwdate from command line by the user is unsupported, for more information, see:"
+printf '%s\n' "https://www.kicksecure.com/wiki/Dev/sdwdate#sdwdate_linux_user_account"
 
 ## Not using exec to be able to see this script in "ps aux".
 leaprun sdwdate-libexec

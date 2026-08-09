@@ -3,18 +3,27 @@
 ## Copyright (C) 2020 - 2025 ENCRYPTED SUPPORT LLC <adrelanos@whonix.org>
 ## See the file COPYING for copying conditions.
 
+set -o errexit
+set -o nounset
+set -o pipefail
+set -o errtrace
+shopt -s inherit_errexit
+shopt -s shift_verbose
+
 while read -r -d $'\n' line ; do
-   read -r first_word second_word _ <<< "$line"
-   temp="$first_word"
-   temp="$(echo "$temp" | str_replace "http://" "")"
-   plain_url="$(echo "$temp" | str_replace "https://" "")"
+   read -r first_word second_word _ <<< "${line}"
+   temp="${first_word}"
+   temp="$(printf '%s\n' "${temp}" | str_replace "http://" "")"
+   plain_url="$(printf '%s\n' "${temp}" | str_replace "https://" "")"
    ## web.archive.org did not support tlsv1.3 at time of writing.
-   if scurl --tlsv1.2 --silent --location "$second_word" | grep -q "$plain_url" ; then
+   if scurl --tlsv1.2 --silent --location "${second_word}" | grep -q "${plain_url}" ; then
       continue
    fi
-   echo "Failed!"
-   echo scurl --tlsv1.2 --silent --location "$second_word"
-   echo "plain_url: $plain_url"
-   echo "second_word: $second_word"
-   echo ""
+   printf '%s\n' "Failed!"
+   ## One line, as the original 'echo' produced: with several arguments printf
+   ## repeats the format and would print one word per line.
+   printf '%s\n' "scurl --tlsv1.2 --silent --location ${second_word}"
+   printf '%s\n' "plain_url: ${plain_url}"
+   printf '%s\n' "second_word: ${second_word}"
+   printf '%s\n' ""
 done < <( /usr/share/sdwdate/onion-list-all )

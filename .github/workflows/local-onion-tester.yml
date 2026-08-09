@@ -19,7 +19,6 @@ on:
       - 'usr/share/sdwdate/onion-tester'
       - 'usr/lib/python3/dist-packages/sdwdate/**'
       - 'usr/bin/url_to_unixtime'
-      - 'ci/onion-tester-*.sh'
       - '.github/workflows/local-onion-tester.yml'
   pull_request:
     paths:
@@ -27,7 +26,6 @@ on:
       - 'usr/share/sdwdate/onion-tester'
       - 'usr/lib/python3/dist-packages/sdwdate/**'
       - 'usr/bin/url_to_unixtime'
-      - 'ci/onion-tester-*.sh'
       - '.github/workflows/local-onion-tester.yml'
   workflow_dispatch:
 
@@ -40,8 +38,16 @@ concurrency:
 
 jobs:
   test:
+    ## CI runs only where we enabled it. Unset variable -> the job is
+    ## skipped, no runner is allocated, and the run stays green: upstream
+    ## and forks are never handed a red X for a lane they did not opt into.
+    ## A fork that WANTS our CI sets the same variable in its own repo.
+    if: vars.CI_ENABLED_ORG_AI_ASSISTED == 'true'
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    ## Backstop only. The per-step caps below are the real budgets; this has
+    ## to exceed their sum or a slow-but-healthy Tor run gets cut off with no
+    ## verdict and no summary.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
@@ -58,21 +64,31 @@ jobs:
           apt-packages: 'tor python3-dateutil python3-stem python3-requests python3-socks python3-sdnotify curl ca-certificates safe-rm'
           install-self: 'true'
 
+      - name: Checkout dist-ai (onion-tester ci scripts + step-summary-emit)
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          repository: org-ai-assisted/dist-ai
+          ref: master
+          path: .github/dist-ai
+          persist-credentials: false
+
       - name: Configure and start Tor
-        run: ./ci/onion-tester-configure-tor.sh
+        run: ./.github/dist-ai/usr/bin/onion-tester-configure-tor
 
       - name: Wait for Tor bootstrap
-        run: ./ci/onion-tester-wait-bootstrap.sh
+        run: ./.github/dist-ai/usr/bin/onion-tester-wait-bootstrap
 
       - name: Run onion-tester (Tor SOCKS5 probe, retry on transient flake)
         id: onion-tester
-        ## Attempt 1 probes the full conf (~5 min); later attempts re-probe ONLY the
-        ## URLs that failed, so a transient per-onion flake is cheap. The wrapper
-        ## self-bounds to a 14-min wall-clock deadline (ONION_TESTER_DEADLINE) and
+        ## Attempt 1 probes the full conf (measured 5-13 min); later attempts
+        ## re-probe ONLY the URLs that failed, so a transient per-onion flake is
+        ## cheap. Each retry is preceded by NEWNYM plus a 60s settle, so a full
+        ## 3-attempt run is a full sweep + 2 short retries + 2 sleeps. The wrapper
+        ## self-bounds to a 20-min wall-clock deadline (ONION_TESTER_DEADLINE) and
         ## runs each attempt under `timeout`, so it exits cleanly + records outputs;
-        ## this step cap is the backstop above that (18 > 14).
-        timeout-minutes: 18
-        run: ./ci/onion-tester-run.sh
+        ## this step cap is the backstop above that (24 > 20).
+        timeout-minutes: 24
+        run: ./.github/dist-ai/usr/bin/onion-tester-run
 
       - name: Probe REMOVED onion entries (must be OFFLINE)
         id: probe-removed
@@ -82,7 +98,7 @@ jobs:
         timeout-minutes: 5
         env:
           GITHUB_BASE_REF: ${{ github.base_ref }}
-        run: ./ci/onion-tester-probe-removed.sh
+        run: ./.github/dist-ai/usr/bin/onion-tester-probe-removed
 
       - name: Verify wayback evidence for ADDED entries (proof onion <-> clearnet)
         id: verify-evidence
@@ -93,28 +109,22 @@ jobs:
         timeout-minutes: 20
         env:
           GITHUB_BASE_REF: ${{ github.base_ref }}
-        run: ./ci/onion-tester-verify-evidence.sh
-
-      - name: Checkout developer-meta-files (for step-summary-emit.sh)
-        if: always()
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
-        with:
-          repository: org-ai-assisted/developer-meta-files
-          ref: master
-          path: .dmf
-          persist-credentials: false
+        run: ./.github/dist-ai/usr/bin/onion-tester-verify-evidence
 
       - name: Summary - onion-tester
         if: always()
         env:
           JOB_STATUS: ${{ steps.onion-tester.outcome }}
           ATTEMPTS: ${{ steps.onion-tester.outputs.attempts }}
+          FINAL_RC: ${{ steps.onion-tester.outputs.final_rc }}
+          FINAL_RC_LEGEND: ${{ steps.onion-tester.outputs.final_rc_legend }}
         run: |
-          ./.dmf/ci/step-summary-emit.sh \
+          ./.github/dist-ai/usr/bin/step-summary-emit \
             --tool 'onion-tester (Tor SOCKS5 probe of every URL in the conf)' \
             --column-header field \
             --row "outcome=${JOB_STATUS}" \
-            --row "attempts=${ATTEMPTS:-?}"
+            --row "attempts=${ATTEMPTS:-?}" \
+            --row "final-rc=${FINAL_RC:-?} ${FINAL_RC_LEGEND:-(legend unavailable)}"
 
       - name: Summary - probe-removed
         if: always()
@@ -123,7 +133,7 @@ jobs:
           REMOVED: ${{ steps.probe-removed.outputs.removed_count }}
           ALIVE: ${{ steps.probe-removed.outputs.still_alive }}
         run: |
-          ./.dmf/ci/step-summary-emit.sh \
+          ./.github/dist-ai/usr/bin/step-summary-emit \
             --tool 'probe-removed (truly-dropped onions must be unreachable)' \
             --column-header field \
             --row "outcome=${JOB_STATUS}" \
@@ -138,7 +148,7 @@ jobs:
           VERIFIED: ${{ steps.verify-evidence.outputs.verified }}
           MISSING: ${{ steps.verify-evidence.outputs.missing }}
         run: |
-          ./.dmf/ci/step-summary-emit.sh \
+          ./.github/dist-ai/usr/bin/step-summary-emit \
             --tool 'verify-evidence (wayback URL must mention the .onion hash)' \
             --column-header field \
             --row "outcome=${JOB_STATUS}" \

@@ -1,3 +1,558 @@
+commit aeec06debd7f0c230d7635d1fb4e05cf7e69162d
+Merge: 945afee eb83a6a
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Sat Aug 1 04:09:54 2026 -0400
+
+    Merge remote-tracking branch 'org-ai-assisted/ai'
+
+commit eb83a6ac3823eb3be71e0d68e46c7a5351889de5
+Author: claude (dev142 b93fb2c6-e15f-4d45-8566-f3ded893b70e) <noreply@anthropic.com>
+Date:   Fri Jul 31 16:23:30 2026 -0400
+
+    CI: propagate bandit + secrets-audit consumer workflows
+
+    Byte-identical propagation from developer-meta-files
+    consumer-templates. Closes scanner-coverage gaps
+    (codeql-actions already present):
+
+    - consumer-bandit.yml: Python security lint, universal
+      self-discovery (extension + shebang scan), no per-repo config.
+    - consumer-secrets-audit.yml: manual-dispatch secrets surface
+      audit (presence flags only, values never emitted).
+
+    Managed files -- do not hand-edit; regenerated on the next
+    propagation pass.
+
+    ## AI-Assisted
+
+    Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+
+commit c1bb269fc4e4ea7a29dea62c4add5b10efabb28f
+Merge: 2eeb4d3 f6f78a5
+Author: assisted-by-ai (Bot Account) (Machine Account) <228987186+assisted-by-ai@users.noreply.github.com>
+Date:   Fri Jul 31 15:52:34 2026 -0400
+
+    Merge pull request #7 from org-ai-assisted/ai
+
+    CI: add CodeQL c-cpp lane for sclockadj
+
+commit 945afeec8893591d33e66b2ceea63be70d205d3c
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Fri Jul 31 18:05:51 2026 +0000
+
+    bumped changelog version
+
+commit f6f78a527d92f3cf71adc8c8776dee93fb72c9db
+Author: claude (dev142 b93fb2c6-e15f-4d45-8566-f3ded893b70e) <noreply@anthropic.com>
+Date:   Fri Jul 31 13:58:22 2026 -0400
+
+    add CodeQL c-cpp consumer workflow for sclockadj
+
+    - usr/src/sdwdate/sclockadj.c is a standalone privileged binary that
+      parses argv and feeds the result to clock_settime(CLOCK_REALTIME).
+      Clock skew is a deanonymisation vector here, so argv reaching that
+      syscall is worth static analysis. Nothing scanned this C before: the
+      existing consumer lanes cover actions and python only, and the org no
+      longer uses GitHub default setup.
+    - .github/workflows/consumer-codeql-cpp.yml is a byte-identical copy of
+      developer-meta-files/consumer-templates/.github/workflows/, verified
+      with cmp against that repo's master. Managed file, do not hand-edit.
+    - consumer-codeql-cpp.yml passes build-mode manual, so the reusable
+      hard-fails without codeql-cpp.build-command. Added that section to the
+      existing .github/dm-consumer.yml.
+    - build-command delegates to the sibling usr/src/sdwdate/Makefile
+      (`make -C usr/src/sdwdate`) instead of restating its hardening flag
+      set, so CodeQL traces the compiler invocation that actually ships.
+
+    Generated with assistance from Claude Code.
+
+commit 2eeb4d31466a71f1161ed5191f5f68f7eabf1c2f
+Merge: 63911c3 5e00f42
+Author: assisted-by-ai (Bot Account) (Machine Account) <228987186+assisted-by-ai@users.noreply.github.com>
+Date:   Fri Jul 31 13:51:19 2026 -0400
+
+    Merge pull request #6 from org-ai-assisted/ai
+
+    CI: CodeQL consumer workflows + onion-tester rc legend from source of truth
+
+commit 5e00f424faa825359fa61db59c6d15df89250948
+Author: claude (dev148 a66a5883-a521-4a0d-a941-21b7c22dba73) <noreply@anthropic.com>
+Date:   Fri Jul 31 13:31:42 2026 -0400
+
+    local-onion-tester: consume final_rc_legend instead of a hardcoded key
+
+    - The rc-to-meaning legend now comes from onion-tester-run's
+      final_rc_legend output (its rc_meaning map is the source of truth),
+      so the summary can't drift from the wrapper's exit codes.
+    - :-(legend unavailable) fallback keeps the row honest against an old
+      wrapper that predates the output.
+
+    Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+
+commit 02fa5fcd1e4c79ec1967fb2403de32ee6cc630ae
+Merge: d452b4c 63911c3
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Fri Jul 31 13:15:49 2026 -0400
+
+    Merge remote-tracking branch 'refs/remotes/org-ai-assisted/master'
+
+commit c1a5f9a6cbe1669e45bbab327c9319b9aea9c2d2
+Author: claude (dev142 b93fb2c6-e15f-4d45-8566-f3ded893b70e) <noreply@anthropic.com>
+Date:   Fri Jul 31 12:58:19 2026 -0400
+
+    add CodeQL consumer workflows (actions, python)
+
+    - Replaces GitHub default-setup CodeQL (web-UI state, no file
+      representation) with the org's file-based consumer wrappers.
+    - Byte-identical copies of
+      developer-meta-files/consumer-templates/.github/workflows/.
+    - No .github/dm-consumer.yml needed: consumer-codeql-actions.yml
+      passes no dm-consumer-section, and codeql-python's section is
+      optional (ci/dm-consumer-load.sh soft-skips when absent).
+    - queries stays the reusable's default security-and-quality,
+      a superset of the security-extended suite default setup used.
+
+    Generated with assistance from Claude Code.
+
+commit 63911c3dcd0857ef99296585194f5a9b3adcceff
+Merge: c869d2c ec43968
+Author: assisted-by-ai (Bot Account) (Machine Account) <228987186+assisted-by-ai@users.noreply.github.com>
+Date:   Fri Jul 31 11:43:52 2026 -0400
+
+    Merge pull request #5 from org-ai-assisted/ai
+
+    sdwdate preparation backoff floor, onion-tester warm-up, dist-ai CI migration
+
+    Merged at the maintainer's explicit request while the onion-tester lane is
+    still red; the outstanding issue is recorded in TODO.md.
+
+    Generated with assistance from Claude Code.
+
+commit ec43968b74ea7caf463997e97543fc3477e11ccd
+Author: claude (dev143 0e237662-0437-41ed-86cc-838db157dd0a) <noreply@anthropic.com>
+Date:   Fri Jul 31 11:28:09 2026 -0400
+
+    CI: onion-tester tools moved to dist-ai usr/bin
+
+    Follow dist-ai's relocation of these tools from its ci/ to its usr/bin, where
+    its other executables live and where debian/dist-ai.install actually packages
+    them. Paths only; no behaviour change here.
+
+    Generated with assistance from Claude Code.
+
+commit 3463f515ecfb0668bfbb94789d329121f563a760
+Author: claude (dev143 0e237662-0437-41ed-86cc-838db157dd0a) <noreply@anthropic.com>
+Date:   Fri Jul 31 11:13:28 2026 -0400
+
+    CI: run the onion-tester scripts from dist-ai
+
+    The six ci/onion-tester-* scripts now live in dist-ai. This workflow already
+    checked dist-ai out for usr/bin/step-summary-emit; that checkout moves above
+    the Tor steps so the scripts are present when they are needed, and every
+    invocation is repointed at it. ci/ is now empty.
+
+    The scripts are CWD-relative, so they still operate on this checkout --
+    verified in the sandbox against a real git repo: verify-evidence and
+    probe-removed both resolve etc/sdwdate.d/30_default.conf and their diff base
+    correctly when invoked by path from the dist-ai checkout.
+
+    The 'ci/onion-tester-*' paths: filters are dropped as dead -- there are no such
+    files here any more, and a filter cannot see another repo. Consequence worth
+    stating: a change to those scripts made in dist-ai no longer triggers this
+    workflow. The offline regression suite for them (dist-ai's
+    sdwdate-onion-tester-tests) is mapped to the sdwdate component, so it still
+    runs on this repo's PRs via consumer-dist-ai-tests.yml; a live-probe regression
+    introduced in dist-ai surfaces only on the next PR or master push here.
+
+    Generated with assistance from Claude Code.
+
+commit 177a14c55ae5c1ead1abc31f3be7ade5f25f5c8f
+Author: claude (dev143 0e237662-0437-41ed-86cc-838db157dd0a) <noreply@anthropic.com>
+Date:   Fri Jul 31 11:03:23 2026 -0400
+
+    CI: move the offline onion-tester tests to dist-ai
+
+    The two mocked test scripts now live in dist-ai as the
+    sdwdate-onion-tester-tests suite, and run against this checkout via the
+    already-wired consumer-dist-ai-tests.yml. Nothing loses coverage: the same 25
+    checks (19 retry-policy + 6 scratch-file) run per PR, just from the repo where
+    the comprehensive suites live.
+
+    Removing the two workflow steps as well, since keeping them would run the same
+    checks twice per PR against the same checkout.
+
+    The remaining ci/onion-tester-* scripts stay here deliberately. The Tor setup
+    pair needs sudo, systemd and a real tor on the runner, which the dist-ai
+    container does not have; the two diff gates need GITHUB_BASE_REF and
+    fetch-depth 0, which the dist-ai runner does not check out -- ported there they
+    would find no diff and exit 0 having verified nothing. onion-tester-run.sh and
+    onion-tester-newnym are the subjects under test, and are coupled by
+    onion-tester-run.sh's ${script_dir}/onion-tester-newnym default.
+
+    The 'ci/onion-tester-*' paths filter stays: the subjects still live here, so a
+    change to them must still trigger this workflow.
+
+    Generated with assistance from Claude Code.
+
+commit 27bca4862a7d55f6b77163e033e78c8d3f3da53d
+Author: claude (dev143 0e237662-0437-41ed-86cc-838db157dd0a) <noreply@anthropic.com>
+Date:   Fri Jul 31 10:45:06 2026 -0400
+
+    verify-evidence: stop using a predictable, uncleaned scratch file
+
+    fetch_and_grep_hash wrote to "/tmp/wb-${hash}.html". Two problems:
+
+    - The path is derived entirely from conf content, so it is predictable to
+      anyone who can read etc/sdwdate.d/30_default.conf, and pre-creatable or
+      symlinkable by any other user on the host before the fetch runs.
+    - It was never removed. The success path returned early from inside the
+      retry loop, so every verified hash leaked one file.
+
+    Both are the pattern every sibling script here already avoids:
+    onion-tester-run.sh does tmp="$(mktemp)" ... safe-rm --force -- "${tmp}".
+
+    Now mktemp, with a single cleanup point reached by both outcomes (the early
+    return became rc=0 plus break 2), and safe-rm rather than rm.
+
+    Low severity on a single-tenant GitHub runner, but it is exactly the
+    predictable-path shape the rest of the tree deliberately does not use, and
+    the leak is unconditional.
+
+    Test: ci/onion-tester-verify-evidence-test.sh. Extracts the real
+    fetch_and_grep_hash and runs it against a stubbed curl -- no network, no
+    wayback, no Tor, no root -- asserting on the path the function actually hands
+    curl. Pins that the scratch path does not embed the hash at all (stronger
+    than checking for one literal path, and it needs no hardcoded /tmp), and
+    that the file is gone on BOTH the verified and unverified paths.
+
+    Wired into local-onion-tester.yml next to the existing offline retry-policy
+    test, so it gates rather than only being runnable by hand.
+
+    Verified: 6 pass, 0 fail, 0 skip against this change; 3 pass, 3 fail against
+    the previous script, which reports the leaked paths by name.
+
+    Generated with assistance from Claude Code.
+
+commit 09e0747167b5076c737674aac209cccd42e0c5c4
+Author: claude (dev143 0e237662-0437-41ed-86cc-838db157dd0a) <noreply@anthropic.com>
+Date:   Fri Jul 31 10:39:34 2026 -0400
+
+    onion-tester: warm Tor before the first measured sweep
+
+    The job has been red because attempt 1 measures a client that is not ready,
+    not because the conf is bad.
+
+    onion-tester-configure-tor.sh restarts tor; onion-tester-wait-bootstrap.sh
+    then waits for exactly one thing, "Bootstrapped 100%". That means a circuit
+    exists. It does NOT mean the client holds hidden-service descriptors for the
+    59 services in the conf, and fetching those is what attempt 1 actually spends
+    its time on.
+
+    Measured in a sandbox against the real conf, chunk size held constant at the
+    CI value of 20, so concurrency is not the variable:
+
+      cold (straight after bootstrap)   8 ONLINE, 1 OFFLINE   178s
+      warm (same client, +240s)         9 ONLINE, 0 OFFLINE    14s
+
+    Same nine URLs, same client, 12x faster once warm. An earlier A/B across
+    chunk=20 and chunk=2 refuted concurrency as the cause: chunk=20 failed 4 in
+    the first round and 0 in the third, and every cold round had failures while
+    every warm round had none.
+
+    This explains the CI logs exactly:
+      * 8 fail on attempt 1 and 4 recover ten minutes later -- warming, not the
+        signal;
+      * 6 of those 8 printed "(Curl --head is OK)" -- by the time the per-failure
+        diagnostic curl runs the descriptor has been fetched, so curl succeeds
+        where the probe had just timed out;
+      * the "persistently offline" onion is a different one every run -- it is
+        whichever service was slowest to cold-fetch, not a property of any
+        service. In the sandbox the one that failed cold was the same address a
+        prior report called consistently unreachable; it answered warm 14s later.
+
+    So: sweep once deliberately, DISCARD the verdict, then measure. The pass
+    criterion is untouched -- every URL must still respond on some measured
+    attempt, and a genuinely dead onion still fails them all. This removes a
+    known-invalid measurement rather than adding re-rolls; widening the retry
+    budget until it passes would have turned the gate into a rubber stamp.
+
+    The warm-up is clamped so it can never leave a measured attempt unable to
+    start, and ONION_TESTER_WARMUP_MAX=0 disables it.
+
+    Also: the header said "attempt N/3" while the budget could only ever fund
+    two (613s + 501s + two 60s settles against a 1200s deadline ends at -34s).
+    Now "attempt N of up to 3", which is what it means.
+
+    Tests: ci/onion-tester-run-test.sh grows 3 cases (19 checks total, was 11).
+    The 5 existing cases now pin ONION_TESTER_WARMUP_MAX=0 so their probe-call
+    accounting stays about retries only.
+
+    Verified: 19 pass, 0 fail, 0 skip against this change; 15 pass, 4 fail
+    against the previous runner. The discard case deliberately runs with
+    ATTEMPTS=1 -- with retries available the loop converges to 0 either way and
+    the assertion would pass with or without a warm-up, which is exactly the
+    one-sided assert that cannot fail.
+
+    Not proven: that NEWNYM is what makes attempt 2 recover. The evidence here
+    says elapsed time is doing that work, so PR #5's "expected, not proven" claim
+    about NEWNYM clearing sticky per-onion state remains unproven, and is now
+    somewhat doubted.
+
+    Generated with assistance from Claude Code.
+
+commit 5b08a5d7e67be22972136e503a07177c6f4abea2
+Author: claude (dev143 0e237662-0437-41ed-86cc-838db157dd0a) <noreply@anthropic.com>
+Date:   Fri Jul 31 10:12:43 2026 -0400
+
+    CI: run the dist-ai sdwdate suite on PRs
+
+    This package had no unit-test lane at all -- its workflows were Coverity,
+    pre-push-static and onion-tester. The regression suite for the
+    preparation retry pacing lives in dist-ai (sdwdate-tests), so opt in via
+    the universal consumer wrapper; the component is derived from the repo
+    name, so the wrapper carries no per-repo state.
+
+    consumer-dist-ai-tests.yml is byte-identical to the
+    developer-meta-files consumer template and must not be hand-edited here.
+
+    dm-consumer.yml declares what importing sdwdate.sdwdate actually needs:
+    sdnotify, dateutil (via sdwdate.timesanitycheck) and stem, plus
+    helper-scripts for guimessages and sanitize_string. Without those the
+    suite cannot load the subject, and under a --component run the runner
+    treats that skip as a failure rather than a pass.
+
+    AGENTS.md / CLAUDE.md: the standard pointer that the comprehensive tests
+    live in dist-ai, not in-tree.
+
+    Generated with assistance from Claude Code.
+
+commit 268aa887930780f47f8a756153b43435ec3c3678
+Author: claude (dev143 0e237662-0437-41ed-86cc-838db157dd0a) <noreply@anthropic.com>
+Date:   Fri Jul 31 10:12:21 2026 -0400
+
+    preparation: put a floor under the retry interval
+
+    On a Gateway with no network yet, the preparation loop ran at ~1 Hz
+    forever, respawning six Tor control port helpers per second -- roughly
+    half a core, indefinitely. Reported as extreme sys-whonix CPU usage
+    before an internet connection:
+    https://forums.whonix.org/t/sys-whonix-has-extreme-cpu-usage-before-an-internet-connection/23450
+    https://github.com/QubesOS/qubes-issues/issues/11013
+
+    The wait grows by a second after each failed onion-time-pre-script run,
+    up to ten, but was reset to one whenever the script's output differed
+    from the previous run. That reset assumes "output changed" means
+    "progress was made". Tor's bootstrap line carries COUNT=, a retry
+    counter incremented on every failed connection attempt, so the output
+    never repeated and the wait never advanced past one second.
+
+    Reset to a floor of three seconds rather than to one. The floor is what
+    bounds the cost, and it holds regardless of what the pre-script prints:
+    helper-scripts also redacts the counter so the ceiling becomes reachable
+    again, but that redaction is a denylist over a format we do not own, and
+    this loop must not depend on it being complete.
+
+    Deliberately NOT a monotonic backoff with a minutes-long ceiling. That
+    bounds the cost far better but costs seconds-to-minutes of detection
+    latency once Tor does come up, and being quick at boot is the whole
+    point of this loop. The first attempt still runs with no preceding wait,
+    so a Gateway whose Tor is already up is not delayed at all.
+
+    Hoist the pre-script path to a module constant; it was rebuilt on every
+    iteration of an unbounded loop.
+
+    Regression tests in dist-ai (sdwdate-tests). Against this code 7 pass,
+    0 fail, 0 skip; against the previous code 3 fail, with the recorded
+    sleeps reading [1, 1, 1, ... ] x20.
+
+    Generated with assistance from Claude Code.
+
+commit ee8596f894136548d9c005a5594d43a07763fe6f
+Author: claude (dev143 0e237662-0437-41ed-86cc-838db157dd0a) <noreply@anthropic.com>
+Date:   Fri Jul 31 10:11:44 2026 -0400
+
+    sdwdate.py: satisfy the org style gate (quotes + mode only)
+
+    Mechanical, no behaviour change. Separated from the functional commit on
+    top so that one stays reviewable.
+
+    - double-quote-string-fixer: single quotes, as the org pre-push-static
+      gate requires. 189 lines, quote characters only -- verified by
+      normalising every changed line with quotes stripped and diffing: 0
+      lines differ beyond quotes.
+    - chmod +x: the gate's R-180 requires a Python file to carry a shebang
+      AND be executable. This file has had '#!/usr/bin/python3 -su' since
+      forever.
+
+    Cost worth knowing: this is the first Python change to this file since
+    the gate became mandatory here, and it rewrites a third of a file we
+    track closely from Kicksecure (we are 4 commits ahead), so future
+    upstream merges of sdwdate.py will conflict on these lines. Kept as its
+    own commit so it can be reverted independently if that trade is judged
+    wrong.
+
+    Note the shebang is vestigial either way: the executable is
+    usr/libexec/sdwdate/sdwdate, which does 'from sdwdate import sdwdate;
+    sdwdate.main()'. This module is imported, never executed. Removing the
+    shebang instead would fail the same R-180 check, so +x is the only way
+    to green.
+
+    Generated with assistance from Claude Code.
+
+commit e3c7875e6436f518f80296a3d9bbf596cf7f783b
+Author: claude (dev142 b93fb2c6-e15f-4d45-8566-f3ded893b70e) <noreply@anthropic.com>
+Date:   Fri Jul 31 09:37:47 2026 -0400
+
+    CI: stop the CI Tor client being a shared point of failure
+
+    First run with the NEWNYM retry cut simultaneous failures from 6 to 1, but one
+    onion still failed all three independent attempts while answering 3/3 from a
+    separate Tor client minutes later. Two client-side leftovers:
+
+    - NEWNYM gives new circuits but keeps the SAME entry guard, so a cold runner's
+      one-off guard choice degrades every attempt in the run alike. A reachability
+      probe of public services from a throwaway runner has no anonymity property to
+      protect, so UseEntryGuards 0 lets each circuit pick a fresh entry.
+    - The diagnostic curl HEAD was capped at 15s, below what a cold Tor client needs
+      for a descriptor fetch plus rendezvous, so it printed "Curl --head also Not OK"
+      almost regardless of the service. 45s makes it a second opinion worth reading.
+
+    Hypothesis, not proof: the guard is the best-supported explanation for several
+    distinct onions failing at once from one client while each is up elsewhere, but
+    the CI failure cannot be reproduced on demand. The pass criterion is unchanged.
+
+    Generated with assistance from Claude Code.
+
+    Co-Authored-By: Claude <noreply@anthropic.com>
+
+commit b080c4b58a635d502ce2349432011e6a9d95e06d
+Author: claude (dev138 9b889944-0a22-45e7-8fd6-c189113e33b9) <noreply@anthropic.com>
+Date:   Fri Jul 31 09:37:09 2026 -0400
+
+    ci: gate the local workflows on CI_ENABLED_ORG_AI_ASSISTED
+
+    Our workflows ran wherever the branch landed. Merged upstream they burn
+    Kicksecure/Whonix runner quota and post our CI into repos that never
+    asked for it; on a contributor fork they run the whole suite unbidden.
+    Only 5 of 136 workflow files across the fleet carried any owner gate.
+
+    Gate: a job-level `vars.CI_ENABLED_ORG_AI_ASSISTED == 'true'`, set once
+    as an organization variable on org-ai-assisted. Zero runner cost -- a job
+    whose `if:` is false never allocates one -- and the run still reports
+    green, so upstream and forks are not handed a red X for a lane they did
+    not opt into. A fork that WANTS the lane sets the same variable in its
+    own repo; no patch to these files, no fork of our workflows.
+
+    ANDed in front of any existing fork-PR guard rather than replacing it.
+
+    Verified: the workflow-yaml validator reports 0 findings for this repo.
+
+    Generated with assistance from Claude Code.
+
+commit dc698e839810df11918c4c21a1d36771d590e529
+Author: claude (dev142 b93fb2c6-e15f-4d45-8566-f3ded893b70e) <noreply@anthropic.com>
+Date:   Fri Jul 31 09:13:56 2026 -0400
+
+    CI: make the onion-tester retry a real retry
+
+    Master was red on the onion-tester step while every active conf entry was
+    reachable from an independent Tor client (5 probe rounds, 59/59 up). Two
+    defects in the retry wrapper, not the conf:
+
+    - Retries were not independent trials. Every attempt ran through the same
+      Tor client seconds apart, so Tor's cached per-onion failure state (hidden
+      service descriptor cache, dead intro points) was replayed instead of the
+      service being re-tested. Signature: the "persistently offline" onion
+      differed per run and was simultaneously ONLINE in the sibling job leg.
+      Each retry now issues NEWNYM (new helper ci/onion-tester-newnym), which
+      purges that state and forces fresh circuits, and waits 60s (was 15s) for
+      the rate limit plus a fresh HSDir fetch.
+    - An attempt was started even when the leftover wall-clock budget could not
+      cover one probe cycle (observed: 67s and 56s against a 120s per-URL
+      timeout). `timeout` then reaped it and the wrapper exited 124, which reads
+      as a probe verdict but is only "out of wall clock". An attempt is now only
+      started with at least ONION_TESTER_MIN_ATTEMPT (180s); otherwise the loop
+      stops and reports the last COMPLETED attempt's verdict.
+
+    Also:
+    - A NEWNYM that fails stops the loop with rc=3 rather than retrying on stale
+      circuits and reporting an untrustworthy verdict.
+    - Deadline 840s -> 1200s, step cap 18 -> 24 min, job cap 30 -> 60 min. Sized
+      off measured runs: a full sweep took 300-800s, not the 2-3 min assumed.
+    - final_rc surfaced in the step summary so 1 / 3 / 124 are distinguishable.
+    - Workflow path filter widened to ci/onion-tester-* so non-.sh helpers
+      trigger it.
+
+    The pass criterion is unchanged: every URL in the conf must respond on some
+    attempt.
+
+    ci/onion-tester-run-test.sh is a new offline suite (mock probe + mock NEWNYM,
+    no Tor, no network) wired into the workflow. 11 checks; 6 of them fail on the
+    pre-change wrapper, including the exact rc=124 that made master red.
+
+    Generated with assistance from Claude Code.
+
+    Co-Authored-By: Claude <noreply@anthropic.com>
+
+commit c869d2c2c60fbd4211f302a1382039c18523a597
+Author: claude (dev142 b93fb2c6-e15f-4d45-8566-f3ded893b70e) <noreply@anthropic.com>
+Date:   Fri Jul 31 08:33:28 2026 -0400
+
+    CI: repoint step-summary-emit at dist-ai
+
+    - developer-meta-files deleted ci/step-summary-emit.sh; the helper now
+      ships as a binary in dist-ai at usr/bin/step-summary-emit.
+    - The summary steps still checked out developer-meta-files into .dmf and
+      called ./.dmf/ci/step-summary-emit.sh, which no longer exists -- the
+      step died with exit 127 and failed the job.
+    - Check out org-ai-assisted/dist-ai into .github/dist-ai and call
+      ./.github/dist-ai/usr/bin/step-summary-emit instead, matching the
+      pattern the developer-meta-files reusables already use.
+
+    Co-Authored-By: Claude <noreply@anthropic.com>
+
+commit d452b4c9c8e88b8cc8ff6f5da90fb1702c0bbfd5
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Tue Jul 21 11:08:01 2026 +0000
+
+    bumped changelog version
+
+commit a4d43707e2fbbbe97736b2788951e2b343f8b730
+Merge: 9ff7857 65e2e94
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Tue Jul 21 06:23:29 2026 -0400
+
+    Merge remote-tracking branch 'refs/remotes/org-ai-assisted/master'
+
+commit 65e2e949c71d6026e62de5126330dd5cc18e64a5
+Author: assisted-by-ai (Bot Account) (Machine Account) <228987186+assisted-by-ai@users.noreply.github.com>
+Date:   Sat Jul 18 20:00:30 2026 -0400
+
+    Coverity: point CI at the org-ai-assisted-sdwdate project
+
+commit 92d6a5365f201642323d4812259f20521be10ce4
+Author: assisted-by-ai (Bot Account) (Machine Account) <228987186+assisted-by-ai@users.noreply.github.com>
+Date:   Sat Jul 18 20:00:28 2026 -0400
+
+    Add consumer-coverity.yml (opt into Coverity Scan)
+
+commit b5b4d8f03213b08988829398749743442368b26f
+Author: assisted-by-ai (Bot Account) (Machine Account) <228987186+assisted-by-ai@users.noreply.github.com>
+Date:   Mon Jul 13 11:51:10 2026 -0400
+
+    onion-tester: multi-line case arm (R-070) (#3)
+
+    Expand the compact url-normalization case arm to the fully multi-line form
+    per R-070. No behavior change.
+
+    Co-authored-by: claude (dev71 31548627-e7c1-43cd-bd41-8b0900c72576) <noreply@anthropic.com>
+
+commit 9ff78573d9d6c55636745bb07fa8d02a70ab9800
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Thu Jul 2 09:13:29 2026 +0000
+
+    bumped changelog version
+
 commit ad576db0242f04acd33e779bcd8178ca7e3f8b2f
 Merge: 061a1e1 a7e2ac5
 Author: Patrick Schleizer <adrelanos@whonix.org>

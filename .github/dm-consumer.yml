@@ -1,0 +1,32 @@
+## Copyright (C) 2026 - 2026 ENCRYPTED SUPPORT LLC <adrelanos@whonix.org>
+## See the file COPYING for copying conditions.
+
+## AI-Assisted
+
+## Per-repo parameters for developer-meta-files consumer workflows.
+
+codeql-cpp:
+  ## Required by consumer-codeql-cpp.yml (build-mode: manual -- the
+  ## reusable hard-fails when this is missing or empty).
+  ##
+  ## The only C in the repo is usr/src/sdwdate/sclockadj.c, and its
+  ## sibling Makefile's default target is the authoritative build:
+  ## `gcc -g sclockadj.c -o sclockadj $(CFLAGS) $(LDFLAGS)`. Delegate
+  ## to it via `make -C` rather than restating the hardening flag set,
+  ## so the compiler invocation CodeQL traces stays the one that ships.
+  ## The Makefile has no `sclockadj.c` path prefix, hence `-C`, not a
+  ## root-level `make`.
+  build-command: "make -C usr/src/sdwdate"
+
+coverity:
+  ## scan.coverity.com project name (org-ai-assisted-owned; the "/" is
+  ## rejected in manual registration so the name is slash-free).
+  project-name:    "org-ai-assisted-sdwdate"
+  canonical-repos: "org-ai-assisted/sdwdate"
+
+dist-ai-tests:
+  ## sdwdate-tests imports sdwdate.sdwdate for real. That import pulls
+  ## sdnotify, dateutil (via sdwdate.timesanitycheck) and stem, plus
+  ## guimessages and sanitize_string from helper-scripts.
+  apt-packages: "python3 python3-pytest python3-hypothesis python3-sdnotify python3-dateutil python3-stem"
+  helper-scripts: true
