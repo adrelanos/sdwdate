@@ -20,8 +20,6 @@ while read -r -d $'\n' line ; do
       continue
    fi
    printf '%s\n' "Failed!"
-   ## One line, as the original 'echo' produced: with several arguments printf
-   ## repeats the format and would print one word per line.
    printf '%s\n' "scurl --tlsv1.2 --silent --location ${second_word}"
    printf '%s\n' "plain_url: ${plain_url}"
    printf '%s\n' "second_word: ${second_word}"

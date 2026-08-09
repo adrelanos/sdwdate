@@ -20,15 +20,14 @@ cmd="python3 ../../usr/lib/python3/dist-packages/sdwdate/config.py"
 
 printf '%s\n' ""
 
-## This is a report -- its documented usage redirects stdout to a file -- so
-## every check must run. Under errexit the first failure would abort and the
-## remaining two would silently never be reported.
-${cmd} "0" "test" || true
-${cmd} "1" "test" || true
-## Left fatal so the script still exits with the last check's status, exactly as
-## it did before strict mode.
-${cmd} "2" "test"
+exit_code=0
+
+${cmd} "0" "test" || exit_code="$?"
+${cmd} "1" "test" || exit_code="$?"
+${cmd} "2" "test" || exit_code="$?"
 
 # $cmd "0" "production"
 # $cmd "1" "production"
 # $cmd "2" "production"
+
+exit "${exit_code}"
