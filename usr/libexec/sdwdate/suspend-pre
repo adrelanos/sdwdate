@@ -21,26 +21,11 @@ date_cmd(){
    date --utc +"%Y-%m-%d %T"
 }
 
-## Vestigial: this sets output_cmd, but unlike suspend-post the script
-## prints directly, so the verbose toggle has no effect here. Flagged
-## rather than removed -- deciding whether to wire it up or drop it is a
-## maintainer call, not part of a strict-mode pass.
-# shellcheck disable=SC2034
-output_cmd_set() {
-   if [ -o xtrace ]; then
-      output_cmd="true"
-   else
-      output_cmd="echo"
-   fi
-}
-
 output_cmd_func() {
    msg="$(date_cmd) - $0 - $*"
    printf '%s\n' "${msg}"
    printf '%s\n' "${msg}" | systemd-cat --identifier="suspend-pre" || true
 }
-
-output_cmd_set
 
 output_cmd_func "INFO - START"
 
@@ -62,8 +47,8 @@ else
 fi
 
 ## Defensive measure to not mess up file permissions.
-mkdir --parents /run/sdwdate
-chown --recursive sdwdate:sdwdate /run/sdwdate
+mkdir --parents -- /run/sdwdate
+chown --recursive -- sdwdate:sdwdate /run/sdwdate
 
 ## First stop sdwdate, then stop Tor.
 ## Should sdwdate fetch time during run of this script, it would log
@@ -74,7 +59,7 @@ if systemctl --no-pager status sdwdate >/dev/null ; then
    output_cmd_func "INFO - Yes, sdwdate is running."
 
    output_cmd_func "INFO - Creating /run/sdwdate/sdwdate_was_running.status..."
-   touch /run/sdwdate/sdwdate_was_running.status
+   touch -- /run/sdwdate/sdwdate_was_running.status
    output_cmd_func "INFO - Done, created /run/sdwdate/sdwdate_was_running.status."
 
    output_cmd_func "INFO - Stopping sdwdate..."
@@ -106,7 +91,7 @@ if systemctl --no-pager status tor >/dev/null ; then
    output_cmd_func "INFO - Yes, tor is running."
 
    output_cmd_func "INFO - Creating /run/sdwdate/tor_was_running.status..."
-   touch /run/sdwdate/tor_was_running.status
+   touch -- /run/sdwdate/tor_was_running.status
    output_cmd_func "INFO - Done, created /run/sdwdate/tor_was_running.status."
 
    output_cmd_func "INFO - Stopping Tor..."
