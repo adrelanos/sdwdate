@@ -4,7 +4,12 @@
 ## See the file COPYING for copying conditions.
 
 set -x
-set -e
+set -o errexit
+set -o nounset
+set -o pipefail
+set -o errtrace
+shopt -s inherit_errexit
+shopt -s shift_verbose
 
 if [ ! "$(id -u)" = "0" ]; then
   true "$0: ERROR: Must be run as root!"
@@ -16,13 +21,13 @@ systemctl stop vanguards &>/dev/null || true
 
 date --set "Sat 09 Jan 2050 02:33:24 AM UTC"
 
-rm -f /var/lib/tor/cached-certs
-rm -f /var/lib/tor/cached-microdesc-consensus
-rm -f /var/lib/tor/cached-microdescs.new
-rm -f /var/lib/tor/keys
-rm -f /var/lib/tor/lock
-rm -f /var/lib/tor/state
-rm -f /var/lib/tor/vanguards.state
+safe-rm -f -- /var/lib/tor/cached-certs
+safe-rm -f -- /var/lib/tor/cached-microdesc-consensus
+safe-rm -f -- /var/lib/tor/cached-microdescs.new
+safe-rm -f -- /var/lib/tor/keys
+safe-rm -f -- /var/lib/tor/lock
+safe-rm -f -- /var/lib/tor/state
+safe-rm -f -- /var/lib/tor/vanguards.state
 
 if systemctl is-enabled vanguards &>/dev/null ; then
   systemctl restart vanguards || true

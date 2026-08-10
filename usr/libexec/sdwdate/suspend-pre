@@ -4,27 +4,31 @@
 ## See the file COPYING for copying conditions.
 
 #set -x
-set -e
+set -o errexit
+set -o nounset
+set -o pipefail
+set -o errtrace
+shopt -s inherit_errexit
+shopt -s shift_verbose
+
+# shellcheck source=../../../../helper-scripts/usr/libexec/helper-scripts/has.sh
+## Sibling repo: absent in an isolated CI checkout, so shellcheck cannot
+## follow it there. The source= path above still documents where it lives.
+##
+## TODO: Can we just not run shellcheck unless we have a full derivative-maker
+## source tree?
+# shellcheck disable=SC1091
+source /usr/libexec/helper-scripts/has.sh
 
 date_cmd(){
    date --utc +"%Y-%m-%d %T"
 }
 
-output_cmd_set() {
-   if [ -o xtrace ]; then
-      output_cmd=true
-   else
-      output_cmd=echo
-   fi
-}
-
 output_cmd_func() {
-   msg="$(date_cmd) - $0 - $@"
-   echo "$msg"
-   echo "$msg" | systemd-cat --identifier="suspend-pre" || true
+   msg="$(date_cmd) - $0 - $*"
+   printf '%s\n' "${msg}"
+   printf '%s\n' "${msg}" | systemd-cat --identifier="suspend-pre" || true
 }
-
-output_cmd_set
 
 output_cmd_func "INFO - START"
 
@@ -38,7 +42,7 @@ if [ ! "$(id -u)" = "0" ]; then
    exit 2
 fi
 
-if command -v "qubesdb-read" >/dev/null 2>&1 ; then
+if has qubesdb-read ; then
    true
 else
    output_cmd_func "INFO - Clock fix after resume not implemented in Non-Qubes-Whonix. See: https://www.whonix.org/wiki/Troubleshooting#Clock_Fix"
@@ -66,14 +70,14 @@ if systemctl --no-pager status sdwdate >/dev/null ; then
    output_cmd_func "INFO - Done, stopped sdwdate."
 
    output_cmd_func "INFO - Deleting /run/sdwdate/first_success..."
-   rm --force /run/sdwdate/first_success
+   safe-rm --force -- /run/sdwdate/first_success
    output_cmd_func "INFO - Done, deleted /run/sdwdate/first_success."
 
    output_cmd_func "INFO - Deleting /run/sdwdate/success..."
-   rm --force /run/sdwdate/success
+   safe-rm --force -- /run/sdwdate/success
    output_cmd_func "INFO - Done, deleted /run/sdwdate/success."
 
-   if command -v whonix_firewall >/dev/null 2>&1 ; then
+   if has whonix_firewall ; then
       ## Whonix firewall timesync-fail-closed mode
       output_cmd_func "INFO - Entering Whonix firewall timesync-fail-closed mode."
       firewall_mode="timesync-fail-closed" whonix_firewall

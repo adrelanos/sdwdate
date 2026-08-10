@@ -6,17 +6,28 @@
 ## usage:
 ## usr/libexec/config-test > ./config-test.txt
 
+set -o errexit
+set -o nounset
+set -o pipefail
+set -o errtrace
+shopt -s inherit_errexit
+shopt -s shift_verbose
+
 MYDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd "$MYDIR"
+cd "${MYDIR}"
 
 cmd="python3 ../../usr/lib/python3/dist-packages/sdwdate/config.py"
 
-echo ""
+printf '%s\n' ""
 
-$cmd "0" "test"
-$cmd "1" "test"
-$cmd "2" "test"
+exit_code=0
+
+${cmd} "0" "test" || exit_code="$?"
+${cmd} "1" "test" || exit_code="$?"
+${cmd} "2" "test" || exit_code="$?"
 
 # $cmd "0" "production"
 # $cmd "1" "production"
 # $cmd "2" "production"
+
+exit "${exit_code}"
