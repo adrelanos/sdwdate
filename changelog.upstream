@@ -1,3 +1,107 @@
+commit 85924b715e85f6749719ce54b118f9ef9a81674f
+Merge: 3a05582 6742e54
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Mon Aug 10 09:40:40 2026 -0400
+
+    Merge remote-tracking branch 'refs/remotes/ArrayBolt3/arraybolt3/trixie'
+
+commit 6742e545e62ae2d02fc1a4dd5cc30dcdaba7a991
+Author: Aaron Rainbolt <arraybolt3@gmail.com>
+Date:   Sun Aug 9 00:31:58 2026 -0400
+
+    Tweaks, TODOs, revert double-quote-to-single-quote conversion as our coding style adheres to Black which uses double quotes by default in Python
+
+commit 0b64c55e5f6820f45ff7e2987a0fa5e00b7ed912
+Merge: 9ff7857 a415b98
+Author: Aaron Rainbolt <arraybolt3@gmail.com>
+Date:   Sat Aug 8 22:58:57 2026 -0400
+
+    Merge branch 'ai' into arraybolt3/trixie
+
+commit a415b981782f76f9ea872914b2da2a8d62f597bc
+Author: claude (dev163 38f9745c-aed1-4fb4-b6ae-9899f20f8de2) <noreply@anthropic.com>
+Date:   Fri Aug 7 07:17:12 2026 -0400
+
+    fix shellcheck directives for an isolated CI checkout
+
+    The gate passed locally but failed (or would fail) in CI. Cause: CI checks
+    each repo out ALONE, while locally they sit side by side as submodules
+    under derivative-maker/packages. A '# shellcheck source=' climbing out of
+    the repo ('../../../../helper-scripts/...') therefore resolves here and
+    not there, so shellcheck reports SC1091 and the gate fails on a commit
+    that looked clean.
+
+    The source= paths are kept -- they document where the file actually lives
+    -- and each is paired with a 'disable=SC1091' so an absent sibling is
+    tolerated. Same shape already used in security-misc master.
+
+    Follow-on findings from the same isolated run, each with a stated reason
+    rather than a blanket waiver:
+    - SC2154 on systemd_notify: assigned by the sourced systemd-notify.bsh,
+      which shellcheck can no longer follow.
+    - SC2034 on SCRIPTNAME and output_cmd: genuinely unused. suspend-pre's
+      output_cmd toggle is vestigial -- unlike suspend-post the script prints
+      directly -- flagged rather than removed, since wiring it up or dropping
+      it is a maintainer call.
+    - SC1090 on the uwt.d conf glob: a dynamic source, which R-081 prescribes
+      SC1090 for.
+
+    Verified with a new reproducer, ~/strict-pass-tests/ci-repro.sh, which
+    clones the repo on its own and runs the real gate there -- the condition
+    CI actually sees. All six repos: gate exit 0.
+
+    Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+
+commit 62803868b030504cd0880373946bde829832aacb
+Author: claude (dev163 38f9745c-aed1-4fb4-b6ae-9899f20f8de2) <noreply@anthropic.com>
+Date:   Wed Aug 5 15:57:16 2026 -0400
+
+    sdwdate: R-010 strict for the 14 standalone scripts
+
+    Two regressions strict mode would have introduced, both caught by running
+    the scripts rather than by reading them:
+
+    - config-test runs three config checks and its documented usage redirects
+      stdout to a report file. Under errexit the first failing check aborted
+      and the other two were never reported -- observed as one error line
+      instead of three. The first two are now explicitly non-fatal; the third
+      is left fatal so the script still exits with the last check's status,
+      exactly as before (verified: exit 2 either way).
+
+    - onion-test-confirm printed its diagnostic with
+      'echo scurl --tlsv1.2 --silent --location "${url}"'. Converting that to
+      printf with the same argument list made printf REPEAT its format, one
+      word per line, instead of the single line echo produced. The message is
+      now a single quoted argument. This one was mine, introduced by the
+      echo -> printf sweep; the rest of the tree was audited for the same
+      shape and usability-misc's multi-argument printf was confirmed
+      byte-identical to the three echos it replaced.
+
+    The Qubes suspend hooks under etc/qubes/suspend-{pre,post}.d are safe to
+    convert: that directory's own README states executable '.sh' files there
+    are EXECUTED as root, not sourced.
+
+    Also: 25 rm -> safe-rm (R-120), echo -> printf (R-034), 'has' instead of
+    'command -v' (R-090), SC2124 '$@' -> '$*' in message strings, SC2209
+    quoting on the output_cmd dispatch variable, SC2162 'read -r', SC2250
+    braces.
+
+    Noted, not changed: suspend-pre's output_cmd_set() toggle is vestigial --
+    it assigns output_cmd but the script prints directly, so unlike
+    suspend-post the verbose setting has no effect there.
+
+    Sandbox differential vs the pre-change scripts, comparing output AND exit
+    code, with the daemon stubbed out so the comparison is deterministic:
+    15 cases, all identical.
+
+    Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+
+commit 3a055826c3edf6ada8eed77acc4d4403a72035f6
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Sat Aug 1 08:11:27 2026 +0000
+
+    bumped changelog version
+
 commit aeec06debd7f0c230d7635d1fb4e05cf7e69162d
 Merge: 945afee eb83a6a
 Author: Patrick Schleizer <adrelanos@whonix.org>
