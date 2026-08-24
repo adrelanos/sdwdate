@@ -34,12 +34,12 @@ shopt -s shift_verbose
 true "START: $0"
 
 ## inotifywait requires the folder to already exist.
-mkdir --parents "/run/sdwdate"
-chown --recursive "sdwdate:sdwdate" "/run/sdwdate"
+mkdir --parents -- "/run/sdwdate"
+chown --recursive -- "sdwdate:sdwdate" "/run/sdwdate"
 
 inotifywait_subshell_fifo="$(mktemp)"
 safe-rm --force -- "${inotifywait_subshell_fifo}"
-mkfifo "${inotifywait_subshell_fifo}"
+mkfifo -- "${inotifywait_subshell_fifo}"
 
 {
    inotifywait --quiet --recursive --monitor --event create --format "%w%f" "/run/sdwdate/" &
