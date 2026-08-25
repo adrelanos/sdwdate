@@ -1,3 +1,66 @@
+commit 1c4f00f92d30f16c9f7c136975b3603fd9f5f894
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Mon Aug 24 02:36:01 2026 -0400
+
+    fix
+
+commit 9834bc58f4fbedc1b5f3d8d83a6cab1924f3da31
+Merge: a7e34a4 ababc04
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Mon Aug 24 02:34:05 2026 -0400
+
+    Merge remote-tracking branch 'refs/remotes/org-ai-assisted/ai'
+
+commit a7e34a40cdcec6fec97dd1f11afed58c0c3809d6
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Sun Aug 16 08:23:40 2026 +0000
+
+    bumped changelog version
+
+commit ababc0479ca3748efe0cff5121aed2869d44bd11
+Author: claude (dev182 e09ec5cf-4ebf-4e1b-88e5-55fbac6ef1d3) <noreply@anthropic.com>
+Date:   Mon Aug 10 13:56:59 2026 -0400
+
+    onion-test-confirm: let grep drain scurl output
+
+    grep -q exits on the first match and closes the pipe, sending SIGPIPE to
+    scurl. Under pipefail the pipeline then reports failure, so a URL that DID
+    match is wrongly reported as Failed. Drop -q and redirect to /dev/null so
+    grep reads the whole stream; add -F so plain_url is matched as a fixed
+    string rather than a regex.
+
+    Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+
+commit f32463adffef588ac0450b089b153be71ad0ba6f
+Author: claude (dev178 ef0a4b88-92fa-4271-9479-a3273c15f53e) <noreply@anthropic.com>
+Date:   Mon Aug 10 12:51:02 2026 -0400
+
+    sdwdate: drop the SC1091 disable on the helper-scripts source
+
+    The pre-push static gate now provisions helper-scripts as a repo sibling when a
+    consumer sets dm-consumer helper-scripts: true (which sdwdate does), so
+    'shellcheck -x' follows has.sh instead of emitting SC1091. Keep the source=
+    directive; drop the inline disable.
+
+commit 8ce6a68715fa4655d1f5cb88869376ed8abbd74e
+Author: claude (dev178 ef0a4b88-92fa-4271-9479-a3273c15f53e) <noreply@anthropic.com>
+Date:   Mon Aug 10 10:16:09 2026 -0400
+
+    sdwdate: printf output, drop vestigial output_cmd, end-of-options separators
+
+    - suspend-post: gate the stdout copy on a boolean + printf '%s\n' instead of
+      the "echo"/"true" command-string dispatch (R-034: no echo). Behaviour is
+      unchanged (messages are date-prefixed, so echo never saw a leading flag).
+    - suspend-pre: drop the vestigial output_cmd_set -- output_cmd_func already
+      prints directly, so the toggle never took effect; removes the set-but-unused
+      var and its SC2034 waiver.
+    - add '--' end-of-options to cd, dirname, mkfifo, mkdir, chown, touch on the
+      variable and path operands (R-062).
+
+    Regression test lands in dist-ai (sdwdate-tests/test_suspend_output.py): drives
+    the real output helpers and is canaried against inverted logic and a
+    reintroduced echo dispatch.
+
 commit 85924b715e85f6749719ce54b118f9ef9a81674f
 Merge: 3a05582 6742e54
 Author: Patrick Schleizer <adrelanos@whonix.org>
