@@ -85,10 +85,11 @@ def write_preparation_output(output):
     try:
         with open(preparation_output_path, 'w') as file_object:
             file_object.write(output)
-    except BaseException:
-        error_msg = ('write_preparation_output unexpected error: '
-                     + str(sys.exc_info()[0]))
-        print(error_msg)
+    except OSError as write_error:
+        # Best-effort: a diagnostic that systemcheck reads must never take the
+        # daemon down. Narrow to the file-write failure mode so SystemExit /
+        # KeyboardInterrupt still propagate.
+        print('write_preparation_output unexpected error: ' + str(write_error))
 
 
 def kill_sclockadj():
