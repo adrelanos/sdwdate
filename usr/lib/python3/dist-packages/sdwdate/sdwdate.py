@@ -85,10 +85,10 @@ def write_preparation_output(output):
     try:
         with open(preparation_output_path, 'w') as file_object:
             file_object.write(output)
-    except OSError as write_error:
+    except Exception as write_error:
         # Best-effort: a diagnostic that systemcheck reads must never take the
-        # daemon down. Narrow to the file-write failure mode so SystemExit /
-        # KeyboardInterrupt still propagate.
+        # daemon down. Exception (not BaseException) still lets SystemExit /
+        # KeyboardInterrupt propagate.
         print('write_preparation_output unexpected error: ' + str(write_error))
 
 
