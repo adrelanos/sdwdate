@@ -12,12 +12,6 @@ shopt -s inherit_errexit
 shopt -s shift_verbose
 
 # shellcheck source=../../../../helper-scripts/usr/libexec/helper-scripts/has.sh
-## Sibling repo: absent in an isolated CI checkout, so shellcheck cannot
-## follow it there. The source= path above still documents where it lives.
-##
-## TODO: Can we just not run shellcheck unless we have a full derivative-maker
-## source tree?
-# shellcheck disable=SC1091
 source /usr/libexec/helper-scripts/has.sh
 
 date_cmd(){
@@ -50,8 +44,8 @@ else
 fi
 
 ## Defensive measure to not mess up file permissions.
-mkdir --parents /run/sdwdate
-chown --recursive sdwdate:sdwdate /run/sdwdate
+mkdir --parents -- /run/sdwdate
+chown --recursive -- sdwdate:sdwdate /run/sdwdate
 
 ## First stop sdwdate, then stop Tor.
 ## Should sdwdate fetch time during run of this script, it would log
@@ -62,7 +56,7 @@ if systemctl --no-pager status sdwdate >/dev/null ; then
    output_cmd_func "INFO - Yes, sdwdate is running."
 
    output_cmd_func "INFO - Creating /run/sdwdate/sdwdate_was_running.status..."
-   touch /run/sdwdate/sdwdate_was_running.status
+   touch -- /run/sdwdate/sdwdate_was_running.status
    output_cmd_func "INFO - Done, created /run/sdwdate/sdwdate_was_running.status."
 
    output_cmd_func "INFO - Stopping sdwdate..."
@@ -94,7 +88,7 @@ if systemctl --no-pager status tor >/dev/null ; then
    output_cmd_func "INFO - Yes, tor is running."
 
    output_cmd_func "INFO - Creating /run/sdwdate/tor_was_running.status..."
-   touch /run/sdwdate/tor_was_running.status
+   touch -- /run/sdwdate/tor_was_running.status
    output_cmd_func "INFO - Done, created /run/sdwdate/tor_was_running.status."
 
    output_cmd_func "INFO - Stopping Tor..."

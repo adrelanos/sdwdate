@@ -77,7 +77,12 @@ def exec_curl(c_url, proxy_ip, proxy_port):
                 'curl',
                 '--socks5-hostname', '{}:{}'.format(proxy_ip, proxy_port),
                 '--max-time', HEAD_MAX_TIME,
-                '--head', c_url,
+                '--head',
+                ## '--' end-of-options: conf URLs are only the quoted text and
+                ## need not start with a scheme, so a leading-dash entry would be
+                ## parsed by curl as an option (e.g. -K reads a config file) with
+                ## curl exiting 0 -- a false "reachable". Treat it as a URL.
+                '--', c_url,
             ],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,

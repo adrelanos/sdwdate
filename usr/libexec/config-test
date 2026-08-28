@@ -13,8 +13,8 @@ set -o errtrace
 shopt -s inherit_errexit
 shopt -s shift_verbose
 
-MYDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd "${MYDIR}"
+MYDIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" && pwd )"
+cd -- "${MYDIR}"
 
 cmd="python3 ../../usr/lib/python3/dist-packages/sdwdate/config.py"
 
