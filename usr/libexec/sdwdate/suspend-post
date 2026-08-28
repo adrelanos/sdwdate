@@ -18,25 +18,13 @@ date_cmd(){
    date -u +"%Y-%m-%d %T"
 }
 
-output_cmd_set() {
-   ## Suppress the stdout copy under xtrace: 'set -x' already echoes every
-   ## command, so printing the message again would double each line.
-   if [ -o xtrace ]; then
-      output_stdout="false"
-   else
-      output_stdout="true"
-   fi
-}
-
 output_cmd_func() {
    msg="$(date_cmd) - $0 - $*"
-   if [ "${output_stdout}" = "true" ]; then
+   if [ -o xtrace ]; then
       printf '%s\n' "${msg}"
    fi
    printf '%s\n' "${msg}" | systemd-cat --identifier="suspend-post" || true
 }
-
-output_cmd_set
 
 output_cmd_func "INFO - START"
 
