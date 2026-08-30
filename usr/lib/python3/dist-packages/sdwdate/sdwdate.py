@@ -75,18 +75,10 @@ def write_status(icon, msg):
 
 
 def write_preparation_output(output):
-    # Read by systemcheck, which displays it as onion-time-pre-script's report.
-    # systemcheck reads this file instead of running onion-time-pre-script
-    # itself: a second copy of the Tor bootstrap chain, and the script actively
-    # requests clock corrections (anondate-set) and Tor newnym, which a
-    # diagnostic must not trigger.
     try:
         with open(preparation_output_path, 'w') as file_object:
             file_object.write(output)
     except Exception as write_error:
-        # Best-effort: a diagnostic that systemcheck reads must never take the
-        # daemon down. Exception (not BaseException) still lets SystemExit /
-        # KeyboardInterrupt propagate.
         print('write_preparation_output unexpected error: ' + str(write_error))
 
 
@@ -247,8 +239,6 @@ class SdwdateClass(object):
             output_stderr = stderr.decode("UTF-8")
             joint_message = output_stderr + "\n" + output_stdout
 
-            # Expose the real last output to systemcheck (all branches below,
-            # including the success return, so its diagnostic is current).
             write_preparation_output(joint_message)
 
             if preparation_status.returncode == 0:
