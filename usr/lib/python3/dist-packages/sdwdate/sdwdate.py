@@ -74,6 +74,22 @@ def write_status(icon, msg):
         msgf.close()
 
 
+def write_preparation_output(output):
+    # Read by systemcheck, which displays it as onion-time-pre-script's report.
+    # systemcheck reads this file instead of running onion-time-pre-script
+    # itself: a second copy of the Tor bootstrap chain, and the script actively
+    # requests clock corrections (anondate-set) and Tor newnym, which a
+    # diagnostic must not trigger.
+    try:
+        with open(preparation_output_path, 'w') as file_object:
+            file_object.write(output)
+    except Exception as write_error:
+        # Best-effort: a diagnostic that systemcheck reads must never take the
+        # daemon down. Exception (not BaseException) still lets SystemExit /
+        # KeyboardInterrupt propagate.
+        print('write_preparation_output unexpected error: ' + str(write_error))
+
+
 def kill_sclockadj():
     try:
         sclockadj_process.kill()
@@ -230,6 +246,10 @@ class SdwdateClass(object):
             output_stdout = stdout.decode("UTF-8")
             output_stderr = stderr.decode("UTF-8")
             joint_message = output_stderr + "\n" + output_stdout
+
+            # Expose the real last output to systemcheck (all branches below,
+            # including the success return, so its diagnostic is current).
+            write_preparation_output(joint_message)
 
             if preparation_status.returncode == 0:
                 LOGGER.info("PREPARATION:")
@@ -970,6 +990,11 @@ def global_files():
     # Read by systemcheck.
     global msg_path
     msg_path = sdwdate_status_files_folder + "/msg"
+
+    # Read by systemcheck: onion-time-pre-script's last output.
+    global preparation_output_path
+    preparation_output_path = \
+        sdwdate_status_files_folder + '/preparation_output'
 
     global sdwdate_time_replay_protection_utc_unixtime
     sdwdate_time_replay_protection_utc_unixtime = (

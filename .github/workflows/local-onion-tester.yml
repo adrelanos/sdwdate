@@ -6,6 +6,21 @@
 ## Probe Tor onion time sources + verify removed/added deltas
 ## against the diff base. local-* prefix per G-A-005 (sdwdate-
 ## specific; no cross-repo reuse).
+##
+## The onion-tester WRAPPER scripts (onion-tester-run, -warmup,
+## -newnym, -configure-tor, -wait-bootstrap, -probe-removed,
+## -verify-evidence) live in org-ai-assisted/dist-ai, not here;
+## this workflow checks them out (dist-ai@master, step below) and
+## runs them against a real Tor. Two consequences of that split:
+##   * A change to those wrappers CANNOT trigger this workflow --
+##     the paths: filter below can only watch sdwdate's own files.
+##     Their offline regression suite runs in dist-ai's own
+##     local-onion-tester-tests.yml self-test lane instead; the
+##     REAL-Tor check here re-validates them on the next sdwdate
+##     PR or via workflow_dispatch.
+##   * paths: therefore lists only the sdwdate-side inputs (the
+##     probe, the conf, the sdwdate python lib); the wrappers are
+##     deliberately absent because they are not in this repo.
 
 name: onion-tester
 
