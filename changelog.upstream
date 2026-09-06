@@ -1,3 +1,112 @@
+commit c9890a046f74b22b890cbae4dc422129a706e755
+Merge: ca99918 be1db0c
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Sun Aug 30 09:55:04 2026 -0400
+
+    Merge remote-tracking branch 'refs/remotes/ArrayBolt3/arraybolt3/trixie'
+
+commit ca999189d766b184a7de3c2a90ee2b6289238d29
+Merge: b420a67 e0faf84
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Sun Aug 30 01:15:30 2026 -0400
+
+    Merge remote-tracking branch 'refs/remotes/org-ai-assisted/ai'
+
+commit be1db0ce32d8cbe30d17301ba41692aa7d33c5de
+Author: Aaron Rainbolt <arraybolt3@gmail.com>
+Date:   Fri Aug 28 01:35:31 2026 -0400
+
+    Polish
+
+commit 5e201dbd548954ad81bf79471bef17ca2af24f1b
+Merge: 6742e54 e0faf84
+Author: Aaron Rainbolt <arraybolt3@gmail.com>
+Date:   Fri Aug 28 01:05:42 2026 -0400
+
+    Merge branch 'ai' into arraybolt3/trixie
+
+commit e0faf84eb56a5357ca9daf97180403d503c3414b
+Author: claude (dev319 9f99de02-2c2e-4212-bd6c-350f4c8b2340) <noreply@anthropic.com>
+Date:   Tue Aug 25 01:16:10 2026 -0400
+
+    sdwdate: disable 2 dead time-source onions
+
+    Startpage (POOL_ZERO) and Whistleblower Aid SecureDrop (POOL_TWO) are
+    unreachable -- verified 2026-08-25 via curl and a headless browser over
+    multiple independent Tor circuits, while control onions load fine. Neither
+    rotated: both are still listed at the same address on their own pages, so
+    comment out (conf convention: preserve evidence, easy re-enable) rather than
+    delete. Leaves 57 active sources; probe-removed skips them (hash retained).
+
+commit 96fb5c7f8e4e773a0bd1bd8e3ee6b2df8672b6a4
+Author: claude (dev319 9f99de02-2c2e-4212-bd6c-350f4c8b2340) <noreply@anthropic.com>
+Date:   Tue Aug 25 00:37:39 2026 -0400
+
+    onion-tester: doc dist-ai split + guard probe curl URL
+
+    - Note in local-onion-tester.yml that the wrapper scripts live in dist-ai
+      (tested by dist-ai's own self-test lane); paths: cannot watch another repo.
+    - exec_curl: pass -- before the URL so a leading-dash conf entry cannot be
+      parsed by curl as an option (same class fixed in dist-ai onion-tester-warmup).
+
+commit b005d4619e4afe31d9873f213130859dd31315d7
+Author: claude (dev320 3da4f74c-4233-4462-b801-e375b347f43d) <noreply@anthropic.com>
+Date:   Tue Aug 25 00:00:29 2026 -0400
+
+    write_preparation_output: catch Exception, not OSError
+
+    - OSError was too narrow: the write references the main()-time global
+      preparation_output_path, so under a dist-ai testlib that does not stub it
+      (master, pre-#107) the best-effort write raised NameError and reddened
+      sdwdate's consumer CI. Exception keeps the daemon alive on any write
+      problem while still letting SystemExit / KeyboardInterrupt propagate.
+
+commit d33ee211ea0e4b9abed95fe4a5ea2c3cba649030
+Author: claude (dev320 3da4f74c-4233-4462-b801-e375b347f43d) <noreply@anthropic.com>
+Date:   Mon Aug 24 23:52:54 2026 -0400
+
+    write_preparation_output: catch OSError, not BaseException
+
+    - CodeQL: broad BaseException swallows SystemExit/KeyboardInterrupt; the
+      only failure mode of a best-effort file write is OSError.
+
+commit 82da33d143f3bb3c1d0ba39734b4decc26f2b777
+Merge: 88cd08a 0e3d27e
+Author: claude (dev320 3da4f74c-4233-4462-b801-e375b347f43d) <noreply@anthropic.com>
+Date:   Mon Aug 24 23:32:35 2026 -0400
+
+    Merge remote-tracking branch 'org-ai-assisted/ai' into ai
+
+commit 0e3d27e38a9d46ad3c03c17d95dc8f541efe943c
+Author: assisted-by-ai (Bot Account) (Machine Account) <228987186+assisted-by-ai@users.noreply.github.com>
+Date:   Mon Aug 24 23:31:14 2026 -0400
+
+    ci: drop orphaned consumer-secrets-audit.yml (reusable decommissioned)
+
+commit 8e0bfe43da775c23849d6041ce4ec07267afbcb8
+Author: assisted-by-ai (Bot Account) (Machine Account) <228987186+assisted-by-ai@users.noreply.github.com>
+Date:   Mon Aug 24 23:31:12 2026 -0400
+
+    ci: drop orphaned consumer-pre-push-static.yml (reusable decommissioned)
+
+commit 88cd08ad30c59b84362abeb58eef6078ac745d17
+Author: claude (dev320 3da4f74c-4233-4462-b801-e375b347f43d) <noreply@anthropic.com>
+Date:   Mon Aug 24 23:29:55 2026 -0400
+
+    expose preparation output for systemcheck
+
+    - systemcheck showed onion-time-pre-script's report by re-running it: a
+      second copy of the Tor bootstrap chain, always SIGKILLed at 5s.
+    - Running it there would also fire its anondate-set / newnym side
+      effects; a diagnostic must not. Persist the real output each loop so
+      systemcheck can read it instead.
+
+commit b420a67339bf5ba2ac39ec387b3b46d3c769d67d
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Tue Aug 25 03:28:37 2026 +0000
+
+    bumped changelog version
+
 commit 1c4f00f92d30f16c9f7c136975b3603fd9f5f894
 Author: Patrick Schleizer <adrelanos@whonix.org>
 Date:   Mon Aug 24 02:36:01 2026 -0400
